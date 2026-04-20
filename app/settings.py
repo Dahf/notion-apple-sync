@@ -22,5 +22,9 @@ class Settings(BaseSettings):
     imprint_address: str = ""
     imprint_email: str = ""
 
+    # Eingehende Kontakt-Mails via Resend Inbound → Forward an diese private Adresse
+    admin_email: str = ""
+    resend_webhook_secret: str = ""
+
 
 settings = Settings()

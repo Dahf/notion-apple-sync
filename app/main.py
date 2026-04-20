@@ -5,7 +5,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import PlainTextResponse
 
 from .db import init_db
-from .routes import dashboard, oauth, public
+from .routes import dashboard, oauth, public, webhooks
 from .settings import settings
 
 
@@ -30,6 +30,7 @@ def create_app() -> FastAPI:
     app.include_router(public.router)
     app.include_router(oauth.router)
     app.include_router(dashboard.router)
+    app.include_router(webhooks.router)
 
     @app.get("/health")
     def health():

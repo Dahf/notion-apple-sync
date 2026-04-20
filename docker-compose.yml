@@ -17,6 +17,8 @@ services:
       IMPRINT_NAME: ${IMPRINT_NAME}
       IMPRINT_ADDRESS: ${IMPRINT_ADDRESS}
       IMPRINT_EMAIL: ${IMPRINT_EMAIL}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      RESEND_WEBHOOK_SECRET: ${RESEND_WEBHOOK_SECRET:-}
     volumes:
       - ./config:/app/config
     labels:

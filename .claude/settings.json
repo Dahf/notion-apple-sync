@@ -5,7 +5,8 @@
       "Bash(.venv/Scripts/python.exe -m pip install --quiet -r requirements.txt)",
       "Bash(.venv/Scripts/python.exe -m pytest tests/ -v)",
       "Bash(rm -f test_app.db)",
-      "Bash(.venv/Scripts/python.exe -m pytest tests/)"
+      "Bash(.venv/Scripts/python.exe -m pytest tests/)",
+      "WebFetch(domain:resend.com)"
     ]
   }
 }
