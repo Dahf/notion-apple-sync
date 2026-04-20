@@ -13,7 +13,7 @@ from ..mailer import send_email
 from ..models import Calendar
 from ..notion import fetch_events
 from ..settings import settings
-from ..templating import render
+from ..templating import render, templates
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -41,14 +41,17 @@ def auth_request(
     if "@" in email and "." in email.split("@")[-1]:
         raw = create_magic_link(db, email)
         link = f"{settings.base_url}/auth/verify?token={raw}"
-        html = (
-            f"<p>Hi!</p><p>Klicke auf diesen Link, um dich einzuloggen:</p>"
-            f'<p><a href="{link}">{link}</a></p>'
-            f"<p>Der Link ist 15 Minuten gültig und kann nur einmal verwendet werden.</p>"
-            f"<p>Wenn du das nicht warst, ignoriere diese Mail.</p>"
+        html = templates.get_template("email/magic_link.html").render(
+            link=link, base_url=settings.base_url
+        )
+        text = (
+            f"Dein Login-Link für Notion → Calendar:\n\n"
+            f"{link}\n\n"
+            f"Der Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\n"
+            f"Wenn du das nicht warst, ignoriere diese Mail."
         )
         try:
-            send_email(email, "Dein Login-Link", html)
+            send_email(email, "Dein Login-Link", html, text=text)
         except Exception:
             pass  # don't leak errors to UI
     return render(request, "login_sent.html", email=email)
