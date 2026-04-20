@@ -78,23 +78,23 @@
     /* Fixed decorative calendar-grid — viewport-pinned, behind all content */
     .fixed-grid {
       position: fixed;
-      inset: 0 0 0 auto;
-      width: min(55vw, 720px);
+      top: 0;
+      right: 0;
+      width: min(36vw, 440px);
       height: 100vh;
-      padding: 24px;
+      padding: 24px 28px;
       z-index: 0;
       pointer-events: none;
       display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      grid-auto-rows: 1fr;
-      gap: 10px;
-      mask-image: linear-gradient(to left, rgba(0,0,0,0.85) 10%, rgba(0,0,0,0.6) 45%, transparent 95%);
-      -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0.85) 10%, rgba(0,0,0,0.6) 45%, transparent 95%);
+      grid-template-columns: repeat(6, 1fr);
+      grid-auto-rows: 58px;
+      gap: 8px;
+      mask-image: linear-gradient(to left, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.5) 60%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.5) 60%, transparent 100%);
     }
     .fixed-grid > span {
-      aspect-ratio: 1;
-      background: #f3f1ea;
-      border-radius: 12px;
+      background: #f1efe6;
+      border-radius: 10px;
       box-shadow: inset 0 0 0 1px rgba(26,22,19,0.04);
     }
     @media (max-width: 767px) {
