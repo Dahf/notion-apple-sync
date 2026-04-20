@@ -5,6 +5,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import PlainTextResponse
 
 from .db import init_db
+from .i18n_middleware import LocaleMiddleware
 from .routes import dashboard, oauth, public, webhooks
 from .settings import settings
 
@@ -21,6 +22,7 @@ def create_app() -> FastAPI:
         max_age=60 * 60 * 24 * 30,
     )
     app.add_middleware(SlowAPIMiddleware)
+    app.add_middleware(LocaleMiddleware)
     app.state.limiter = public.limiter
 
     @app.exception_handler(RateLimitExceeded)

@@ -4,7 +4,7 @@
     {{ _('picker.no_date_body_1') }} <span class="font-mono text-xs bg-white/60 px-1.5 py-0.5 rounded">Date</span> {{ _('picker.no_date_body_2') }}
   </div>
 {% else %}
-  <form method="post" action="/dashboard/calendars"
+  <form method="post" action="{{ lurl('/dashboard/calendars') }}"
         class="p-6 md:p-7 rounded-2xl bg-cream-100/60 space-y-5" style="border: 1px solid rgba(26,22,19,0.06);">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <input type="hidden" name="connection_id" value="{{ connection.id }}">

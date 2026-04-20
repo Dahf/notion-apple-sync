@@ -9,7 +9,14 @@ from ..cache import TTLCache
 from ..crypto import decrypt
 from ..db import get_session
 from ..flash import flash
-from ..i18n import SUPPORTED, get_locale, translate
+from ..i18n import (
+    SUPPORTED,
+    build_locale_url,
+    get_locale,
+    lredirect,
+    strip_locale_prefix,
+    translate,
+)
 from ..ics import build_ics
 from ..mailer import send_email
 from ..models import Calendar
@@ -65,10 +72,21 @@ def login_form(request: Request):
 
 @router.post("/lang/{code}")
 def set_language(code: str, request: Request):
-    if code in SUPPORTED and hasattr(request, "session"):
-        request.session["lang"] = code
+    if code not in SUPPORTED:
+        return RedirectResponse("/", status_code=303)
+
     referer = request.headers.get("referer") or "/"
-    return RedirectResponse(referer, status_code=303)
+    try:
+        from urllib.parse import urlparse
+
+        parsed = urlparse(referer)
+        referer_path = parsed.path or "/"
+    except Exception:
+        referer_path = "/"
+
+    _, path_no_locale = strip_locale_prefix(referer_path)
+    target = build_locale_url(path_no_locale, code)
+    return RedirectResponse(target, status_code=303)
 
 
 @router.post("/auth/request")
@@ -121,14 +139,14 @@ def auth_verify(token: str, request: Request, db: Session = Depends(get_session)
         email=user.email,
     )
     flash(request, "flash.welcome", kind="success", email=user.email)
-    return RedirectResponse("/dashboard", status_code=303)
+    return RedirectResponse(lredirect(request, "/dashboard"), status_code=303)
 
 
 @router.post("/auth/logout")
 def auth_logout(request: Request):
     logout_session(request)
     flash(request, "flash.logged_out", kind="info")
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(lredirect(request, "/"), status_code=303)
 
 
 @router.get("/privacy")

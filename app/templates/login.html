@@ -22,7 +22,7 @@
     </div>
   {% endif %}
 
-  <form method="post" action="/auth/request" class="reveal reveal-3 surface p-8 space-y-5">
+  <form method="post" action="{{ lurl('/auth/request') }}" class="reveal reveal-3 surface p-8 space-y-5">
     <div>
       <label for="email" class="block text-[0.78rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-3">
         {{ _('login.email_label') }}

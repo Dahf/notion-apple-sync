@@ -425,13 +425,45 @@ def _parse_accept_language(header: str) -> str | None:
 
 
 def get_locale(request: Request) -> str:
-    if hasattr(request, "session"):
-        lang = request.session.get("lang")
-        if lang in SUPPORTED:
-            return lang
-    header = request.headers.get("accept-language", "")
-    detected = _parse_accept_language(header)
-    return detected or DEFAULT
+    """Locale is set by LocaleMiddleware via URL prefix (`/en/...`)."""
+    locale = request.scope.get("locale")
+    if locale in SUPPORTED:
+        return locale
+    return DEFAULT
+
+
+def get_path_no_locale(request: Request) -> str:
+    path = request.scope.get("path_no_locale")
+    if path:
+        return path
+    return request.url.path
+
+
+def strip_locale_prefix(path: str) -> tuple[str, str]:
+    """Return (locale, path_without_prefix). Used for parsing referer URLs in /lang switch."""
+    for code in SUPPORTED:
+        if code == DEFAULT:
+            continue
+        prefix = f"/{code}"
+        if path == prefix:
+            return code, "/"
+        if path.startswith(f"{prefix}/"):
+            return code, path[len(prefix):]
+    return DEFAULT, path
+
+
+def build_locale_url(path_no_locale: str, target_locale: str) -> str:
+    """Given a path without locale prefix, build URL for the target locale."""
+    if target_locale == DEFAULT:
+        return path_no_locale
+    if not path_no_locale.startswith("/"):
+        path_no_locale = "/" + path_no_locale
+    return f"/{target_locale}{path_no_locale}"
+
+
+def lredirect(request: Request, path: str) -> str:
+    """Build a locale-aware redirect target matching the request's current locale."""
+    return build_locale_url(path, get_locale(request))
 
 
 def translate(key: str, locale: str, **params) -> str:

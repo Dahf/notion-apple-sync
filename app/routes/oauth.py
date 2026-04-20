@@ -8,6 +8,7 @@ from ..auth import current_user
 from ..crypto import encrypt
 from ..db import get_session
 from ..flash import flash
+from ..i18n import lredirect
 from ..models import Connection
 from ..notion_oauth import authorize_url, exchange_code
 
@@ -18,7 +19,7 @@ router = APIRouter()
 def oauth_start(request: Request, db: Session = Depends(get_session)):
     user = current_user(request, db)
     if user is None:
-        return RedirectResponse("/login", status_code=303)
+        return RedirectResponse(lredirect(request, "/login"), status_code=303)
     state = secrets.token_urlsafe(16)
     request.session["oauth_state"] = state
     return RedirectResponse(authorize_url(state), status_code=303)
@@ -33,7 +34,7 @@ def oauth_callback(
 ):
     user = current_user(request, db)
     if user is None:
-        return RedirectResponse("/login", status_code=303)
+        return RedirectResponse(lredirect(request, "/login"), status_code=303)
 
     expected = request.session.pop("oauth_state", None)
     if not expected or not secrets.compare_digest(expected, state):
@@ -51,7 +52,7 @@ def oauth_callback(
     db.add(conn)
     db.commit()
     flash(request, "flash.ws_connected", kind="success", name=conn.workspace_name)
-    return RedirectResponse("/dashboard", status_code=303)
+    return RedirectResponse(lredirect(request, "/dashboard"), status_code=303)
 
 
 @router.post("/oauth/disconnect/{connection_id}")
@@ -62,7 +63,7 @@ def oauth_disconnect(
 ):
     user = current_user(request, db)
     if user is None:
-        return RedirectResponse("/login", status_code=303)
+        return RedirectResponse(lredirect(request, "/login"), status_code=303)
 
     conn = db.query(Connection).filter(Connection.id == connection_id).one_or_none()
     if conn is None or conn.user_id != user.id:
@@ -71,4 +72,4 @@ def oauth_disconnect(
     db.delete(conn)
     db.commit()
     flash(request, "flash.ws_disconnected", kind="info", name=ws_name)
-    return RedirectResponse("/dashboard", status_code=303)
+    return RedirectResponse(lredirect(request, "/dashboard"), status_code=303)

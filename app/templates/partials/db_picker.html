@@ -2,7 +2,7 @@
   <div class="p-5 rounded-xl bg-rust-50 border-l-2 border-rust-500 text-sm leading-relaxed text-rust-800">
     <div class="font-serif italic serif-soft mb-1">{{ _('picker.no_databases_title') }}</div>
     {{ _('picker.no_databases_body') }}
-    <a href="/oauth/start" class="link-underline text-rust-700 font-medium">{{ _('picker.reconnect') }}</a>.
+    <a href="{{ lurl('/oauth/start') }}" class="link-underline text-rust-700 font-medium">{{ _('picker.reconnect') }}</a>.
   </div>
 {% else %}
   <div class="text-[0.72rem] tracking-[0.2em] uppercase text-ink-500 font-mono mb-4">
@@ -11,7 +11,7 @@
   <div class="grid gap-2">
     {% for db in databases %}
       <button type="button"
-              hx-get="/dashboard/connections/{{ connection.id }}/databases/{{ db.id }}/properties"
+              hx-get="{{ lurl('/dashboard/connections/' ~ connection.id ~ '/databases/' ~ db.id ~ '/properties') }}"
               hx-target="#property-picker-{{ connection.id }}"
               hx-swap="innerHTML"
               class="group text-left p-4 rounded-xl bg-cream-50 hover:bg-white hover:shadow-paper transition-all border border-transparent hover:border-ink-900/[0.06]">

@@ -8,6 +8,7 @@ from ..auth import current_user, verify_csrf
 from ..crypto import decrypt
 from ..db import get_session
 from ..flash import flash
+from ..i18n import lredirect
 from ..models import Calendar, Connection
 from ..notion import get_database_properties, list_databases
 from ..templating import render
@@ -26,7 +27,7 @@ def _require_user(request: Request, db: Session):
 def dashboard(request: Request, db: Session = Depends(get_session)):
     user = _require_user(request, db)
     if user is None:
-        return RedirectResponse("/login", status_code=303)
+        return RedirectResponse(lredirect(request, "/login"), status_code=303)
 
     connections = db.query(Connection).filter(Connection.user_id == user.id).all()
     calendars_by_conn = {
@@ -93,7 +94,7 @@ def create_calendar(
 ):
     user = _require_user(request, db)
     if user is None:
-        return RedirectResponse("/login", status_code=303)
+        return RedirectResponse(lredirect(request, "/login"), status_code=303)
     if not verify_csrf(request, csrf_token):
         raise HTTPException(status_code=400, detail="CSRF check failed")
 
@@ -112,7 +113,7 @@ def create_calendar(
     db.add(cal)
     db.commit()
     flash(request, "flash.cal_created", kind="success", name=cal.name)
-    return RedirectResponse("/dashboard", status_code=303)
+    return RedirectResponse(lredirect(request, "/dashboard"), status_code=303)
 
 
 @router.get("/dashboard/calendars/{calendar_id}/edit")
@@ -121,7 +122,7 @@ def edit_calendar_form(
 ):
     user = _require_user(request, db)
     if user is None:
-        return RedirectResponse("/login", status_code=303)
+        return RedirectResponse(lredirect(request, "/login"), status_code=303)
 
     cal = db.query(Calendar).filter(Calendar.id == calendar_id).one_or_none()
     if cal is None or cal.connection.user_id != user.id:
@@ -148,7 +149,7 @@ def update_calendar(
 ):
     user = _require_user(request, db)
     if user is None:
-        return RedirectResponse("/login", status_code=303)
+        return RedirectResponse(lredirect(request, "/login"), status_code=303)
     if not verify_csrf(request, csrf_token):
         raise HTTPException(status_code=400, detail="CSRF check failed")
 
@@ -161,7 +162,7 @@ def update_calendar(
     cal.description_property = (description_property or None) or None
     db.commit()
     flash(request, "flash.cal_updated", kind="success", name=cal.name)
-    return RedirectResponse("/dashboard", status_code=303)
+    return RedirectResponse(lredirect(request, "/dashboard"), status_code=303)
 
 
 @router.post("/dashboard/calendars/{calendar_id}/delete")
@@ -173,7 +174,7 @@ def delete_calendar(
 ):
     user = _require_user(request, db)
     if user is None:
-        return RedirectResponse("/login", status_code=303)
+        return RedirectResponse(lredirect(request, "/login"), status_code=303)
     if not verify_csrf(request, csrf_token):
         raise HTTPException(status_code=400)
 
@@ -184,4 +185,4 @@ def delete_calendar(
     db.delete(cal)
     db.commit()
     flash(request, "flash.cal_deleted", kind="info", name=cal_name)
-    return RedirectResponse("/dashboard", status_code=303)
+    return RedirectResponse(lredirect(request, "/dashboard"), status_code=303)

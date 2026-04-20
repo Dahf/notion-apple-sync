@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from .auth import ensure_csrf
 from .db import SessionLocal
 from .flash import pop_flash
-from .i18n import SUPPORTED, get_locale, make_translator
+from .i18n import SUPPORTED, build_locale_url, get_locale, get_path_no_locale, make_translator
 from .models import User
 from .settings import settings
 
@@ -25,7 +25,10 @@ def render(request: Request, name: str, **context) -> "templates.TemplateRespons
     locale = get_locale(request)
     _ = make_translator(locale)
 
-    path_no_locale = getattr(request.state, "path_no_locale", None) or request.url.path
+    def lurl(path: str) -> str:
+        return build_locale_url(path, locale)
+
+    path_no_locale = get_path_no_locale(request)
     if locale == "en":
         canonical_url = f"{settings.base_url}/en{path_no_locale}"
     else:
@@ -53,6 +56,7 @@ def render(request: Request, name: str, **context) -> "templates.TemplateRespons
         "path_no_locale": path_no_locale,
         "_": _,
         "t": _,
+        "lurl": lurl,
         **context,
     }
     return templates.TemplateResponse(request, name, ctx)
