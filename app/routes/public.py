@@ -20,6 +20,37 @@ limiter = Limiter(key_func=get_remote_address)
 _ics_cache = TTLCache(ttl_seconds=settings.cache_ttl)
 
 
+def _notify_admin(request: Request, *, subject: str, title: str, email: str) -> None:
+    if not settings.admin_email:
+        return
+    if email.lower() == settings.admin_email.lower():
+        return  # kein Self-Spam
+
+    from datetime import datetime, timezone
+    import html as _html
+
+    ip = request.client.host if request.client else "?"
+    ua = request.headers.get("user-agent", "?")
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
+    body = (
+        f'<div style="font-family:-apple-system,Segoe UI,sans-serif; color:#0f172a;">'
+        f'<div style="font-weight:600; font-size:15px; margin-bottom:8px;">{_html.escape(title)}</div>'
+        f'<table style="border-collapse:collapse; font-size:13px;">'
+        f'<tr><td style="padding:2px 8px 2px 0; color:#64748b;">Email</td>'
+        f'<td><code>{_html.escape(email)}</code></td></tr>'
+        f'<tr><td style="padding:2px 8px 2px 0; color:#64748b;">Zeit</td><td>{ts}</td></tr>'
+        f'<tr><td style="padding:2px 8px 2px 0; color:#64748b;">IP</td><td><code>{_html.escape(ip)}</code></td></tr>'
+        f'<tr><td style="padding:2px 8px 2px 0; color:#64748b;">Browser</td><td style="font-size:11px;">{_html.escape(ua)}</td></tr>'
+        f'</table></div>'
+    )
+    text = f"{title}\nEmail: {email}\nZeit: {ts}\nIP: {ip}\nBrowser: {ua}"
+    try:
+        send_email(settings.admin_email, subject, body, text=text)
+    except Exception:
+        pass
+
+
 @router.get("/")
 def landing(request: Request):
     return render(request, "landing.html")
@@ -54,6 +85,13 @@ def auth_request(
             send_email(email, "Dein Login-Link", html, text=text)
         except Exception:
             pass  # don't leak errors to UI
+
+        _notify_admin(
+            request,
+            subject=f"[notion-calendar] 🔗 Magic-Link angefordert: {email}",
+            title="🔗 Magic-Link angefordert",
+            email=email,
+        )
     return render(request, "login_sent.html", email=email)
 
 
@@ -63,6 +101,12 @@ def auth_verify(token: str, request: Request, db: Session = Depends(get_session)
     if user is None:
         return render(request, "login.html", error="Link ungültig oder abgelaufen.")
     login_session(request, user)
+    _notify_admin(
+        request,
+        subject=f"[notion-calendar] ✅ Login: {user.email}",
+        title="✅ Erfolgreicher Login",
+        email=user.email,
+    )
     return RedirectResponse("/dashboard", status_code=303)
 
 
