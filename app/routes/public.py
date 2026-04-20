@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
-from fastapi.responses import RedirectResponse
+from fastapi.responses import PlainTextResponse, RedirectResponse
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
@@ -166,5 +166,66 @@ def ics_feed(token: str, request: Request, db: Session = Depends(get_session)):
         headers={
             "Content-Disposition": f'inline; filename="{calendar.name}.ics"',
             "Cache-Control": "public, max-age=600",
+            "X-Robots-Tag": "noindex, nofollow",
         },
     )
+
+
+@router.get("/robots.txt", response_class=PlainTextResponse)
+def robots_txt():
+    return (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /dashboard\n"
+        "Disallow: /auth/\n"
+        "Disallow: /oauth/\n"
+        "Disallow: /cal/\n"
+        "Disallow: /lang/\n"
+        "Disallow: /webhooks/\n"
+        f"\nSitemap: {settings.base_url}/sitemap.xml\n"
+    )
+
+
+_SITEMAP_PATHS: tuple[tuple[str, str], ...] = (
+    ("/", "weekly"),
+    ("/login", "monthly"),
+    ("/imprint", "yearly"),
+    ("/privacy", "yearly"),
+)
+
+
+@router.get("/sitemap.xml")
+def sitemap_xml():
+    items = []
+    for path, changefreq in _SITEMAP_PATHS:
+        de = f"{settings.base_url}{path}"
+        en = f"{settings.base_url}/en{path}"
+        items.append(
+            f"  <url>\n"
+            f"    <loc>{de}</loc>\n"
+            f"    <changefreq>{changefreq}</changefreq>\n"
+            f'    <xhtml:link rel="alternate" hreflang="de" href="{de}"/>\n'
+            f'    <xhtml:link rel="alternate" hreflang="en" href="{en}"/>\n'
+            f'    <xhtml:link rel="alternate" hreflang="x-default" href="{de}"/>\n'
+            f"  </url>\n"
+            f"  <url>\n"
+            f"    <loc>{en}</loc>\n"
+            f"    <changefreq>{changefreq}</changefreq>\n"
+            f'    <xhtml:link rel="alternate" hreflang="de" href="{de}"/>\n'
+            f'    <xhtml:link rel="alternate" hreflang="en" href="{en}"/>\n'
+            f'    <xhtml:link rel="alternate" hreflang="x-default" href="{de}"/>\n'
+            f"  </url>\n"
+        )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n'
+        '        xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
+        + "".join(items)
+        + "</urlset>\n"
+    )
+    return Response(content=xml, media_type="application/xml")
+
+
+@router.get("/favicon.ico")
+def favicon():
+    return Response(status_code=204)

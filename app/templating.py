@@ -25,6 +25,17 @@ def render(request: Request, name: str, **context) -> "templates.TemplateRespons
     locale = get_locale(request)
     _ = make_translator(locale)
 
+    path_no_locale = getattr(request.state, "path_no_locale", None) or request.url.path
+    if locale == "en":
+        canonical_url = f"{settings.base_url}/en{path_no_locale}"
+    else:
+        canonical_url = f"{settings.base_url}{path_no_locale}"
+    locale_urls = {
+        "de": f"{settings.base_url}{path_no_locale}",
+        "en": f"{settings.base_url}/en{path_no_locale}",
+        "x-default": f"{settings.base_url}{path_no_locale}",
+    }
+
     ctx = {
         "base_url": settings.base_url,
         "csrf_token": ensure_csrf(request),
@@ -37,6 +48,9 @@ def render(request: Request, name: str, **context) -> "templates.TemplateRespons
         },
         "locale": locale,
         "supported_locales": SUPPORTED,
+        "canonical_url": canonical_url,
+        "locale_urls": locale_urls,
+        "path_no_locale": path_no_locale,
         "_": _,
         "t": _,
         **context,

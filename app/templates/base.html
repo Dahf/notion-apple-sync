@@ -3,7 +3,32 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Notion → Calendar{% endblock %}</title>
+  <title>{% block title %}{{ _('seo.default_title') }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ _('seo.default_description') }}{% endblock %}">
+  {% block robots %}<meta name="robots" content="index, follow">{% endblock %}
+  <link rel="canonical" href="{% block canonical %}{{ canonical_url }}{% endblock %}">
+  {% for code, url in locale_urls.items() %}
+  <link rel="alternate" hreflang="{{ code }}" href="{{ url }}">
+  {% endfor %}
+
+  {# Open Graph #}
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ _('seo.site_name') }}">
+  <meta property="og:title" content="{% block og_title %}{{ self.title() }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{{ self.description() }}{% endblock %}">
+  <meta property="og:url" content="{{ canonical_url }}">
+  <meta property="og:image" content="{{ base_url }}/static/og-image.png">
+  <meta property="og:locale" content="{{ 'de_DE' if locale == 'de' else 'en_US' }}">
+  {% if locale == 'de' %}<meta property="og:locale:alternate" content="en_US">{% else %}<meta property="og:locale:alternate" content="de_DE">{% endif %}
+
+  {# Twitter #}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ self.og_title() }}">
+  <meta name="twitter:description" content="{{ self.og_description() }}">
+  <meta name="twitter:image" content="{{ base_url }}/static/og-image.png">
+
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

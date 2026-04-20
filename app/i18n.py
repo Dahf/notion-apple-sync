@@ -193,6 +193,19 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "flash.cal_created": "„{name}\" angelegt. ICS-URL ist sofort aktiv.",
         "flash.cal_updated": "„{name}\" aktualisiert.",
         "flash.cal_deleted": "„{name}\" gelöscht.",
+
+        # SEO (titles: 50–60 chars; descriptions: 150–160 chars)
+        "seo.site_name": "Notion → Calendar",
+        "seo.default_title": "Notion → Calendar — ICS-Feeds für Apple & Google Calendar",
+        "seo.default_description": "Verbinde Notion-Datenbanken als ICS-Feed mit Apple Calendar und Google Calendar. Kostenlos, ohne Passwort, ohne Tracking.",
+        "seo.landing_title": "Notion → Calendar — Notion als ICS-Feed in Apple Calendar",
+        "seo.landing_description": "Verbinde eine Notion-Datenbank, wähle Deine Datums-Spalte und abonniere eine ICS-URL. Funktioniert mit Apple Calendar, Google Calendar und Outlook.",
+        "seo.login_title": "Einloggen — Notion → Calendar",
+        "seo.login_description": "Magic-Link-Login für Notion → Calendar. Kein Passwort, ein Klick genügt. Der Link ist 15 Minuten gültig.",
+        "seo.imprint_title": "Impressum — Notion → Calendar",
+        "seo.imprint_description": "Impressum gemäß § 5 TMG für den Dienst Notion → Calendar — Betreiber, Kontakt und Verantwortlichkeit.",
+        "seo.privacy_title": "Datenschutz — Notion → Calendar",
+        "seo.privacy_description": "Was wir speichern und was nicht. Kein Tracking, keine Analytics. Notion-Tokens sind Fernet-verschlüsselt. Deine Rechte im Überblick.",
     },
     "en": {
         # Nav / shared
@@ -383,6 +396,19 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "flash.cal_created": "\"{name}\" created. ICS URL is active immediately.",
         "flash.cal_updated": "\"{name}\" updated.",
         "flash.cal_deleted": "\"{name}\" deleted.",
+
+        # SEO
+        "seo.site_name": "Notion → Calendar",
+        "seo.default_title": "Notion → Calendar — ICS feeds for Apple & Google Calendar",
+        "seo.default_description": "Connect Notion databases as an ICS feed to Apple Calendar and Google Calendar. Free, no password, no tracking.",
+        "seo.landing_title": "Notion → Calendar — Notion as an ICS feed in Apple Calendar",
+        "seo.landing_description": "Connect a Notion database, pick your date column and subscribe to an ICS URL. Works with Apple Calendar, Google Calendar and Outlook.",
+        "seo.login_title": "Sign in — Notion → Calendar",
+        "seo.login_description": "Magic-link sign-in for Notion → Calendar. No password, one click is enough. The link is valid for 15 minutes.",
+        "seo.imprint_title": "Imprint — Notion → Calendar",
+        "seo.imprint_description": "Imprint pursuant to § 5 TMG for the Notion → Calendar service — operator, contact and accountability.",
+        "seo.privacy_title": "Privacy — Notion → Calendar",
+        "seo.privacy_description": "What we store and what we don't. No tracking, no analytics. Notion tokens are Fernet-encrypted. Your rights at a glance.",
     },
 }
 
