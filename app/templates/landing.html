@@ -68,16 +68,6 @@
 </section>
 
 <section class="mt-28 md:mt-36 mb-8 relative">
-
-  {# Decorative tiled cells — bleeds behind the calendar preview, fades via mask #}
-  <div aria-hidden="true"
-       class="absolute inset-y-0 right-0 w-[75%] pointer-events-none z-0"
-       style="mask-image: linear-gradient(to left, black 30%, transparent 95%); -webkit-mask-image: linear-gradient(to left, black 30%, transparent 95%);">
-    <div class="cell-tiles h-full" style="--cols: 8; padding: 20px;">
-      {% for _ in range(56) %}<span></span>{% endfor %}
-    </div>
-  </div>
-
   <div class="relative z-10 grid md:grid-cols-[1fr_1.15fr] gap-12 md:gap-16 items-center">
 
     <div>
