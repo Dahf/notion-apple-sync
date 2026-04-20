@@ -1,0 +1,7 @@
+calendars:
+  - token: "3ae3a89a6b91ba74316de15560a36a62"
+    name: "Uni"
+    database_id: "c2666c973d014ed598e1f1b36936596a"
+    properties:
+      date: "Zeitraum"
+      description: "Kategorie"
