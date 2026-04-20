@@ -244,6 +244,11 @@ def favicon():
     return Response(status_code=204)
 
 
+@router.get("/google5c627a1c647d3cc7.html", response_class=PlainTextResponse)
+def google_site_verification():
+    return "google-site-verification: google5c627a1c647d3cc7.html"
+
+
 @router.api_route("/en", methods=["GET", "HEAD"])
 @router.api_route("/en/{rest:path}", methods=["GET", "HEAD"])
 def legacy_en_redirect(rest: str = ""):
