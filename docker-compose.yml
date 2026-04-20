@@ -3,8 +3,9 @@ services:
     build: .
     container_name: notion-apple-sync
     restart: unless-stopped
-    env_file:
-      - .env
+    environment:
+      NOTION_TOKEN: ${NOTION_TOKEN}
+      CACHE_TTL: ${CACHE_TTL:-600}
     volumes:
       - ./config:/app/config
     labels:
