@@ -216,24 +216,19 @@ _SITEMAP_PATHS: tuple[tuple[str, str], ...] = (
 def sitemap_xml():
     items = []
     for path, changefreq in _SITEMAP_PATHS:
-        de = f"{settings.base_url}{path}"
-        en = f"{settings.base_url}/en{path}"
-        items.append(
-            f"  <url>\n"
-            f"    <loc>{de}</loc>\n"
-            f"    <changefreq>{changefreq}</changefreq>\n"
-            f'    <xhtml:link rel="alternate" hreflang="de" href="{de}"/>\n'
-            f'    <xhtml:link rel="alternate" hreflang="en" href="{en}"/>\n'
-            f'    <xhtml:link rel="alternate" hreflang="x-default" href="{de}"/>\n'
-            f"  </url>\n"
-            f"  <url>\n"
-            f"    <loc>{en}</loc>\n"
-            f"    <changefreq>{changefreq}</changefreq>\n"
-            f'    <xhtml:link rel="alternate" hreflang="de" href="{de}"/>\n'
-            f'    <xhtml:link rel="alternate" hreflang="en" href="{en}"/>\n'
-            f'    <xhtml:link rel="alternate" hreflang="x-default" href="{de}"/>\n'
-            f"  </url>\n"
-        )
+        en = f"{settings.base_url}{build_locale_url(path, 'en')}"
+        de = f"{settings.base_url}{build_locale_url(path, 'de')}"
+        default = f"{settings.base_url}{build_locale_url(path, 'en')}"
+        for canonical in (en, de):
+            items.append(
+                f"  <url>\n"
+                f"    <loc>{canonical}</loc>\n"
+                f"    <changefreq>{changefreq}</changefreq>\n"
+                f'    <xhtml:link rel="alternate" hreflang="en" href="{en}"/>\n'
+                f'    <xhtml:link rel="alternate" hreflang="de" href="{de}"/>\n'
+                f'    <xhtml:link rel="alternate" hreflang="x-default" href="{default}"/>\n'
+                f"  </url>\n"
+            )
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n'
@@ -247,3 +242,11 @@ def sitemap_xml():
 @router.get("/favicon.ico")
 def favicon():
     return Response(status_code=204)
+
+
+@router.api_route("/en", methods=["GET", "HEAD"])
+@router.api_route("/en/{rest:path}", methods=["GET", "HEAD"])
+def legacy_en_redirect(rest: str = ""):
+    """Old URLs from before EN became the default — redirect to canonical root."""
+    target = "/" + rest if rest else "/"
+    return RedirectResponse(target, status_code=301)

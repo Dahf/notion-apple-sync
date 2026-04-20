@@ -1,7 +1,7 @@
 from fastapi import Request
 
-SUPPORTED = ("de", "en")
-DEFAULT = "de"
+SUPPORTED = ("en", "de")
+DEFAULT = "en"
 
 TRANSLATIONS: dict[str, dict[str, str]] = {
     "de": {
@@ -409,8 +409,23 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "seo.imprint_description": "Imprint pursuant to § 5 TMG for the Notion → Calendar service — operator, contact and accountability.",
         "seo.privacy_title": "Privacy — Notion → Calendar",
         "seo.privacy_description": "What we store and what we don't. No tracking, no analytics. Notion tokens are Fernet-encrypted. Your rights at a glance.",
+
+        # Language-suggestion banner (shown in the *suggested* language — so text is in DE
+        # when we nudge a German speaker on the EN site; keys duplicated in both bundles
+        # so lookup works regardless of current locale)
+        "banner.suggest_de_message": "Diese Seite ist auch auf Deutsch verfügbar.",
+        "banner.suggest_de_switch": "Auf Deutsch lesen",
+        "banner.suggest_de_dismiss": "Schließen",
     },
 }
+
+TRANSLATIONS["de"].update(
+    {
+        "banner.suggest_de_message": "Diese Seite ist auch auf Deutsch verfügbar.",
+        "banner.suggest_de_switch": "Auf Deutsch lesen",
+        "banner.suggest_de_dismiss": "Schließen",
+    }
+)
 
 
 def _parse_accept_language(header: str) -> str | None:
@@ -422,6 +437,12 @@ def _parse_accept_language(header: str) -> str | None:
         if primary in SUPPORTED:
             return primary
     return None
+
+
+def detect_preferred_language(request: Request) -> str:
+    """Best-effort locale preference from Accept-Language. Falls back to DEFAULT."""
+    header = request.headers.get("accept-language", "")
+    return _parse_accept_language(header) or DEFAULT
 
 
 def get_locale(request: Request) -> str:

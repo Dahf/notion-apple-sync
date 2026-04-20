@@ -258,12 +258,67 @@
       transition: background 0.2s;
     }
     .btn-subtle:hover { background: rgba(26,22,19,0.05); }
+
+    /* Language suggestion banner */
+    .lang-banner {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: #1a1613;
+      color: #faf9f5;
+      font-size: 0.88rem;
+    }
+    .lang-banner-inner {
+      max-width: 64rem;
+      margin: 0 auto;
+      padding: 0.6rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .lang-banner-dot {
+      width: 6px; height: 6px; border-radius: 999px;
+      background: #bd5d3a;
+      flex-shrink: 0;
+    }
+    .lang-banner-text { flex: 1; letter-spacing: -0.005em; }
+    .lang-banner-switch {
+      background: #bd5d3a; color: #faf9f5;
+      padding: 0.3rem 0.85rem; border-radius: 999px;
+      font-weight: 500; font-size: 0.82rem;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .lang-banner-switch:hover { background: #a54e30; }
+    .lang-banner-close {
+      background: none; border: 0; color: rgba(250,249,245,0.6);
+      font-size: 1.25rem; line-height: 1;
+      padding: 0.25rem 0.5rem; cursor: pointer;
+      transition: color 0.2s;
+    }
+    .lang-banner-close:hover { color: #faf9f5; }
+    @media (max-width: 520px) {
+      .lang-banner-text { font-size: 0.82rem; }
+      .lang-banner-switch { font-size: 0.78rem; padding: 0.25rem 0.7rem; }
+    }
   </style>
 </head>
 <body class="min-h-screen antialiased">
 
   {# Fixed decorative grid — visible across all pages, behind content #}
   <div aria-hidden="true" class="fixed-grid"></div>
+
+  {% if suggest_locale == 'de' %}
+  <div id="lang-banner" class="lang-banner" role="status" aria-live="polite" lang="de">
+    <div class="lang-banner-inner">
+      <span class="lang-banner-dot" aria-hidden="true"></span>
+      <span class="lang-banner-text">{{ _('banner.suggest_de_message') }}</span>
+      <a href="{{ suggest_url }}" class="lang-banner-switch">{{ _('banner.suggest_de_switch') }}</a>
+      <button type="button" class="lang-banner-close" aria-label="{{ _('banner.suggest_de_dismiss') }}"
+              onclick="document.cookie='lang_banner=1;max-age=2592000;path=/;samesite=lax';document.getElementById('lang-banner').remove();">×</button>
+    </div>
+  </div>
+  {% endif %}
 
   <header class="max-w-5xl mx-auto px-6 md:px-8 py-6">
     <div class="flex items-baseline justify-between">
