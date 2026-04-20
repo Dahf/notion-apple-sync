@@ -8,6 +8,7 @@ from ..auth import consume_magic_link, create_magic_link, login_session, logout_
 from ..cache import TTLCache
 from ..crypto import decrypt
 from ..db import get_session
+from ..flash import flash
 from ..ics import build_ics
 from ..mailer import send_email
 from ..models import Calendar
@@ -107,12 +108,14 @@ def auth_verify(token: str, request: Request, db: Session = Depends(get_session)
         title="✅ Erfolgreicher Login",
         email=user.email,
     )
+    flash(request, f"Willkommen, {user.email}.", kind="success")
     return RedirectResponse("/dashboard", status_code=303)
 
 
 @router.post("/auth/logout")
 def auth_logout(request: Request):
     logout_session(request)
+    flash(request, "Ausgeloggt. Bis bald.", kind="info")
     return RedirectResponse("/", status_code=303)
 
 

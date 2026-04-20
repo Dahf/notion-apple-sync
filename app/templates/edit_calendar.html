@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto pt-8 md:pt-12">
+
+  <div class="reveal reveal-1 mb-8">
+    <a href="/dashboard" class="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-rust-600 transition-colors link-underline">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 13L5 8l5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Zurück zum Dashboard
+    </a>
+  </div>
+
+  <div class="reveal reveal-2 mb-10">
+    <div class="text-[0.72rem] tracking-[0.25em] uppercase text-rust-600 font-mono mb-4">
+      — Kalender bearbeiten
+    </div>
+    <h1 class="font-serif text-4xl md:text-5xl text-ink-900 tracking-tight-display leading-[1.05]">
+      {{ calendar.name }}
+    </h1>
+    <p class="mt-3 text-sm text-ink-400 font-mono">
+      Workspace · {{ calendar.connection.workspace_name }}
+    </p>
+  </div>
+
+  <div class="reveal reveal-3 surface p-6 md:p-8 mb-6">
+    <div class="text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
+      ICS-URL
+    </div>
+    <div class="flex items-center gap-3">
+      <code class="flex-1 min-w-0 truncate font-mono text-xs text-ink-700 bg-cream-50 rounded-lg px-3 py-2 select-all">
+        {{ base_url }}/cal/{{ calendar.subscription_token }}.ics
+      </code>
+      <button type="button"
+              onclick="navigator.clipboard.writeText('{{ base_url }}/cal/{{ calendar.subscription_token }}.ics'); this.innerText='kopiert ✓'; setTimeout(()=>this.innerText='kopieren', 1600);"
+              class="shrink-0 text-xs px-3 py-2 rounded-full border border-ink-900/10 text-ink-700 hover:border-rust-500 hover:text-rust-600 transition-all font-medium">
+        kopieren
+      </button>
+    </div>
+  </div>
+
+  {% if info %}
+    <form method="post" action="/dashboard/calendars/{{ calendar.id }}/update"
+          class="reveal reveal-3 surface p-6 md:p-8 space-y-6">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+      <div>
+        <label for="name" class="block text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
+          Kalender-Name
+        </label>
+        <input id="name" type="text" name="name" value="{{ calendar.name }}" required>
+        <p class="mt-1.5 text-xs text-ink-400 italic font-serif">So erscheint er in Apple Calendar.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-5">
+        <div>
+          <label for="date-prop" class="block text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
+            Datums-Property
+          </label>
+          <select id="date-prop" name="date_property" required>
+            {% for p in info.date_properties %}
+              <option value="{{ p }}" {% if p == calendar.date_property %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+            {% if calendar.date_property not in info.date_properties %}
+              <option value="{{ calendar.date_property }}" selected>{{ calendar.date_property }} (nicht mehr vorhanden)</option>
+            {% endif %}
+          </select>
+        </div>
+
+        <div>
+          <label for="desc-prop" class="block text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
+            Beschreibung <span class="text-ink-300">(optional)</span>
+          </label>
+          <select id="desc-prop" name="description_property">
+            <option value="" {% if not calendar.description_property %}selected{% endif %}>— keine —</option>
+            {% for p in info.text_properties %}
+              <option value="{{ p }}" {% if p == calendar.description_property %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-2 hairline" style="border-top:1px solid rgba(26,22,19,0.06); padding-top:1.25rem;">
+        <button type="submit" class="btn-primary">
+          Änderungen speichern
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <a href="/dashboard" class="text-sm text-ink-500 italic font-serif link-underline hover:text-ink-900">
+          Abbrechen
+        </a>
+      </div>
+    </form>
+  {% else %}
+    <div class="surface p-6 rounded-xl bg-rust-50 border-l-2 border-rust-500 text-sm text-rust-800">
+      <div class="font-serif italic mb-1">Notion-Datenbank nicht erreichbar.</div>
+      Möglicherweise wurde die Freigabe entzogen. Prüfe die Verbindung im Dashboard.
+    </div>
+  {% endif %}
+
+  <form method="post" action="/dashboard/calendars/{{ calendar.id }}/delete" class="mt-10"
+        data-confirm="„{{ calendar.name }}“ wird entfernt und die ICS-URL wird sofort ungültig. Abonnenten sehen den Kalender nicht mehr."
+        data-confirm-title="Kalender löschen"
+        data-confirm-label="Ja, löschen">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button class="text-sm text-ink-400 hover:text-rust-600 italic font-serif link-underline">
+      Kalender löschen
+    </button>
+  </form>
+
+</div>
+
+{% endblock %}

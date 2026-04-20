@@ -5,6 +5,7 @@ from fastapi.templating import Jinja2Templates
 
 from .auth import ensure_csrf
 from .db import SessionLocal
+from .flash import pop_flash
 from .models import User
 from .settings import settings
 
@@ -24,6 +25,7 @@ def render(request: Request, name: str, **context) -> "templates.TemplateRespons
         "base_url": settings.base_url,
         "csrf_token": ensure_csrf(request),
         "user": user,
+        "flash_messages": pop_flash(request),
         "imprint": {
             "name": settings.imprint_name,
             "address": settings.imprint_address,

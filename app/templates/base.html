@@ -7,7 +7,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
@@ -45,7 +45,7 @@
             },
           },
           fontFamily: {
-            serif: ['Fraunces', 'Georgia', 'serif'],
+            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
             sans:  ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
             mono:  ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
           },
@@ -70,17 +70,20 @@
       color: #1a1613;
       background-color: #faf9f5;
       background-image:
-        radial-gradient(ellipse 1200px 600px at 85% -10%, rgba(189,93,58,0.05), transparent 60%),
+        linear-gradient(rgba(26,22,19,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26,22,19,0.035) 1px, transparent 1px),
+        radial-gradient(ellipse 1200px 600px at 85% -10%, rgba(189,93,58,0.06), transparent 60%),
         radial-gradient(ellipse 800px 500px at 10% 110%, rgba(189,93,58,0.04), transparent 60%);
+      background-size: 56px 56px, 56px 56px, 100% 100%, 100% 100%;
+      background-position: -1px -1px, -1px -1px, 0 0, 0 0;
       background-attachment: fixed;
     }
     h1, h2, h3, h4, .font-serif {
-      font-family: 'Fraunces', Georgia, serif;
-      font-variation-settings: "opsz" 144, "SOFT" 30;
-      letter-spacing: -0.02em;
+      font-family: 'Instrument Serif', Georgia, serif;
+      letter-spacing: -0.015em;
     }
-    .serif-tight { font-variation-settings: "opsz" 72, "SOFT" 20; }
-    .serif-soft  { font-variation-settings: "opsz" 144, "SOFT" 100; }
+    .serif-tight { letter-spacing: -0.02em; }
+    .serif-soft  { letter-spacing: -0.01em; }
 
     .link-underline {
       position: relative;
@@ -164,6 +167,108 @@
     .reveal-3 { animation-delay: 0.32s; }
     .reveal-4 { animation-delay: 0.5s; }
     @keyframes reveal { to { opacity: 1; transform: translateY(0); } }
+
+    /* Toasts */
+    .toast-stack {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.25rem;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: calc(100vw - 2rem);
+      width: 22rem;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 12px 14px 12px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      box-shadow: 0 1px 2px rgba(26,22,19,0.04), 0 20px 48px -12px rgba(26,22,19,0.18);
+      transform: translateX(120%);
+      opacity: 0;
+      transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.3s;
+      border-left: 3px solid transparent;
+    }
+    .toast.visible { transform: translateX(0); opacity: 1; }
+    .toast.leaving { transform: translateX(120%); opacity: 0; }
+    .toast .toast-dot {
+      width: 8px; height: 8px; border-radius: 999px;
+      margin-top: 6px; flex-shrink: 0;
+    }
+    .toast-success { border-left-color: #4b9a6b; }
+    .toast-success .toast-dot { background: #4b9a6b; }
+    .toast-info    { border-left-color: #bd5d3a; }
+    .toast-info .toast-dot { background: #bd5d3a; }
+    .toast-error   { border-left-color: #c04a3b; }
+    .toast-error .toast-dot { background: #c04a3b; }
+    .toast .toast-body { flex: 1; font-size: 14px; line-height: 1.5; color: #1a1613; }
+    .toast .toast-body strong { font-family: 'Instrument Serif', Georgia, serif; font-weight: normal; font-style: italic; font-size: 15px; display: block; margin-bottom: 1px; }
+    .toast .toast-close {
+      background: none; border: 0; font-size: 18px; line-height: 1; color: #aea59a;
+      cursor: pointer; padding: 2px 4px; border-radius: 6px; transition: color 0.2s, background 0.2s;
+    }
+    .toast .toast-close:hover { color: #1a1613; background: rgba(26,22,19,0.04); }
+
+    /* Modal */
+    dialog.modal {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      max-width: 100%;
+      color: #1a1613;
+    }
+    dialog.modal::backdrop {
+      background: rgba(26,22,19,0.35);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    dialog.modal[open] { animation: modal-in 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    dialog.modal[open]::backdrop { animation: fade-in 0.25s ease; }
+    @keyframes modal-in {
+      from { opacity: 0; transform: translateY(8px) scale(0.98); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+    .modal-card {
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 32px 32px 24px;
+      width: 28rem;
+      max-width: calc(100vw - 2rem);
+      box-shadow: 0 2px 4px rgba(26,22,19,0.06), 0 32px 80px -16px rgba(26,22,19,0.22);
+    }
+    .btn-danger {
+      background: #c04a3b;
+      color: #faf9f5;
+      padding: 0.7rem 1.4rem;
+      border-radius: 999px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border: 0;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 1px 2px rgba(192,74,59,0.2), 0 8px 24px -8px rgba(192,74,59,0.4);
+    }
+    .btn-danger:hover { background: #a23c2f; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(192,74,59,0.25), 0 12px 32px -8px rgba(192,74,59,0.5); }
+    .btn-subtle {
+      background: transparent;
+      color: #524940;
+      padding: 0.7rem 1.4rem;
+      border-radius: 999px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border: 0;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-subtle:hover { background: rgba(26,22,19,0.05); }
   </style>
 </head>
 <body class="min-h-screen antialiased">
@@ -192,6 +297,140 @@
   <main class="max-w-5xl mx-auto px-6 md:px-8 pb-20">
     {% block content %}{% endblock %}
   </main>
+
+  {# Toast stack #}
+  <div id="toast-stack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+  {# Confirm modal #}
+  <dialog id="confirm-modal" class="modal" aria-labelledby="confirm-title">
+    <div class="modal-card">
+      <div class="text-[0.72rem] tracking-[0.25em] uppercase text-rust-600 font-mono mb-3">
+        — Bitte bestätigen
+      </div>
+      <h2 id="confirm-title" class="font-serif text-3xl text-ink-900 serif-tight leading-[1.1] mb-3">
+        Sicher?
+      </h2>
+      <p id="confirm-message" class="text-ink-500 leading-relaxed mb-8">
+        Aktion wirklich ausführen?
+      </p>
+      <div class="flex items-center justify-end gap-2">
+        <button type="button" class="btn-subtle" data-modal-cancel>Abbrechen</button>
+        <button type="button" class="btn-danger" id="confirm-ok">Bestätigen</button>
+      </div>
+    </div>
+  </dialog>
+
+  {# Flash messages bootstrap #}
+  <script id="flash-data" type="application/json">
+    {{ flash_messages|default([])|tojson }}
+  </script>
+
+  <script>
+    (function() {
+      const stack = document.getElementById('toast-stack');
+
+      window.showToast = function(message, kind, opts) {
+        kind = kind || 'info';
+        opts = opts || {};
+        const el = document.createElement('div');
+        el.className = 'toast toast-' + kind;
+
+        const dot = document.createElement('div');
+        dot.className = 'toast-dot';
+        const body = document.createElement('div');
+        body.className = 'toast-body';
+
+        if (typeof message === 'object' && message !== null) {
+          if (message.title) {
+            const strong = document.createElement('strong');
+            strong.textContent = message.title;
+            body.appendChild(strong);
+          }
+          body.appendChild(document.createTextNode(message.body || ''));
+        } else {
+          body.textContent = String(message);
+        }
+
+        const close = document.createElement('button');
+        close.className = 'toast-close';
+        close.setAttribute('aria-label', 'Schließen');
+        close.textContent = '×';
+
+        el.appendChild(dot);
+        el.appendChild(body);
+        el.appendChild(close);
+        stack.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('visible'));
+
+        const dismiss = () => {
+          el.classList.add('leaving');
+          setTimeout(() => el.remove(), 500);
+        };
+        close.addEventListener('click', dismiss);
+        if (opts.sticky !== true) setTimeout(dismiss, opts.duration || 4500);
+      };
+
+      try {
+        const raw = document.getElementById('flash-data').textContent.trim();
+        const msgs = JSON.parse(raw || '[]');
+        msgs.forEach((m, i) => setTimeout(() => showToast(m.message, m.kind || 'info'), 80 + i * 140));
+      } catch (e) { /* ignore */ }
+
+      const modal = document.getElementById('confirm-modal');
+      const modalTitle = document.getElementById('confirm-title');
+      const modalMessage = document.getElementById('confirm-message');
+      const modalOk = document.getElementById('confirm-ok');
+      let pendingCallback = null;
+
+      function openConfirm(cfg) {
+        modalTitle.textContent = cfg.title || 'Bitte bestätigen';
+        modalMessage.textContent = cfg.message || 'Aktion wirklich ausführen?';
+        modalOk.textContent = cfg.confirmLabel || 'Bestätigen';
+        modalOk.className = cfg.danger === false ? 'btn-primary' : 'btn-danger';
+        pendingCallback = cfg.onConfirm;
+        if (typeof modal.showModal === 'function') modal.showModal();
+        else modal.setAttribute('open', '');
+      }
+      function closeModal() {
+        pendingCallback = null;
+        if (typeof modal.close === 'function') modal.close();
+        else modal.removeAttribute('open');
+      }
+      modalOk.addEventListener('click', () => {
+        const cb = pendingCallback;
+        closeModal();
+        if (cb) cb();
+      });
+      modal.querySelectorAll('[data-modal-cancel]').forEach(b =>
+        b.addEventListener('click', closeModal));
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      function wireConfirms(root) {
+        root.querySelectorAll('form[data-confirm]').forEach(form => {
+          if (form.dataset.confirmWired) return;
+          form.dataset.confirmWired = '1';
+          form.addEventListener('submit', (e) => {
+            if (form.dataset.confirmed === '1') return;
+            e.preventDefault();
+            openConfirm({
+              title: form.dataset.confirmTitle || 'Bitte bestätigen',
+              message: form.dataset.confirm,
+              confirmLabel: form.dataset.confirmLabel || 'Bestätigen',
+              danger: form.dataset.confirmKind !== 'primary',
+              onConfirm: () => {
+                form.dataset.confirmed = '1';
+                form.submit();
+              }
+            });
+          });
+        });
+      }
+      wireConfirms(document);
+      document.addEventListener('htmx:afterSwap', (e) => wireConfirms(e.target));
+    })();
+  </script>
 
   <footer class="max-w-5xl mx-auto px-6 md:px-8 py-10">
     <div class="hairline pt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-ink-500">

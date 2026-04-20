@@ -48,7 +48,9 @@
             </div>
           </div>
           <form method="post" action="/oauth/disconnect/{{ conn.id }}"
-                onsubmit="return confirm('Workspace trennen? Alle zugehörigen Kalender werden entfernt.');">
+                data-confirm="Wenn Du diesen Workspace trennst, werden alle zugehörigen Kalender-Feeds sofort ungültig. Sicher?"
+                data-confirm-title="Workspace trennen"
+                data-confirm-label="Ja, trennen">
             <button class="text-xs text-ink-400 hover:text-rust-600 transition-colors">
               trennen
             </button>
@@ -62,23 +64,22 @@
               {% for cal in cals %}
                 <div class="group flex items-start gap-4 p-4 rounded-xl hover:bg-cream-50 transition-colors">
                   <div class="pt-1 text-rust-500 font-serif italic text-lg serif-soft shrink-0">›</div>
-                  <div class="flex-1 min-w-0">
-                    <div class="font-serif text-lg text-ink-900 serif-tight leading-tight">{{ cal.name }}</div>
-                    <div class="mt-1.5 font-mono text-xs text-ink-500 truncate select-all">
+                  <a href="/dashboard/calendars/{{ cal.id }}/edit" class="flex-1 min-w-0 block">
+                    <div class="font-serif text-lg text-ink-900 serif-tight leading-tight group-hover:text-rust-600 transition-colors">{{ cal.name }}</div>
+                    <div class="mt-1.5 font-mono text-xs text-ink-500 truncate">
                       {{ base_url }}/cal/{{ cal.subscription_token }}.ics
                     </div>
-                  </div>
+                  </a>
                   <div class="flex items-center gap-2 shrink-0">
                     <button type="button"
-                            onclick="navigator.clipboard.writeText('{{ base_url }}/cal/{{ cal.subscription_token }}.ics'); this.innerText='kopiert ✓'; setTimeout(()=>this.innerText='kopieren', 1600);"
+                            onclick="event.stopPropagation(); navigator.clipboard.writeText('{{ base_url }}/cal/{{ cal.subscription_token }}.ics'); this.innerText='kopiert ✓'; setTimeout(()=>this.innerText='kopieren', 1600);"
                             class="text-xs px-3 py-1.5 rounded-full border border-ink-900/10 text-ink-700 hover:border-rust-500 hover:text-rust-600 transition-all font-medium">
                       kopieren
                     </button>
-                    <form method="post" action="/dashboard/calendars/{{ cal.id }}/delete" class="inline"
-                          onsubmit="return confirm('Diesen Kalender wirklich löschen?');">
-                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                      <button class="text-xs w-7 h-7 rounded-full text-ink-400 hover:text-rust-600 hover:bg-rust-50 transition-colors" title="Löschen">×</button>
-                    </form>
+                    <a href="/dashboard/calendars/{{ cal.id }}/edit"
+                       class="text-xs px-3 py-1.5 rounded-full border border-ink-900/10 text-ink-700 hover:border-rust-500 hover:text-rust-600 transition-all font-medium">
+                      bearbeiten
+                    </a>
                   </div>
                 </div>
               {% endfor %}

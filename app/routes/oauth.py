@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from ..auth import current_user
 from ..crypto import encrypt
 from ..db import get_session
+from ..flash import flash
 from ..models import Connection
 from ..notion_oauth import authorize_url, exchange_code
 
@@ -49,6 +50,7 @@ def oauth_callback(
     )
     db.add(conn)
     db.commit()
+    flash(request, f"Workspace „{conn.workspace_name}“ verbunden.", kind="success")
     return RedirectResponse("/dashboard", status_code=303)
 
 
@@ -65,6 +67,8 @@ def oauth_disconnect(
     conn = db.query(Connection).filter(Connection.id == connection_id).one_or_none()
     if conn is None or conn.user_id != user.id:
         raise HTTPException(status_code=404)
+    ws_name = conn.workspace_name
     db.delete(conn)
     db.commit()
+    flash(request, f"Workspace „{ws_name}“ getrennt.", kind="info")
     return RedirectResponse("/dashboard", status_code=303)

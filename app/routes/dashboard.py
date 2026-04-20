@@ -7,9 +7,9 @@ from sqlalchemy.orm import Session
 from ..auth import current_user, verify_csrf
 from ..crypto import decrypt
 from ..db import get_session
+from ..flash import flash
 from ..models import Calendar, Connection
 from ..notion import get_database_properties, list_databases
-from ..settings import settings
 from ..templating import render
 
 router = APIRouter()
@@ -111,6 +111,56 @@ def create_calendar(
     )
     db.add(cal)
     db.commit()
+    flash(request, f"„{cal.name}“ angelegt. ICS-URL ist sofort aktiv.", kind="success")
+    return RedirectResponse("/dashboard", status_code=303)
+
+
+@router.get("/dashboard/calendars/{calendar_id}/edit")
+def edit_calendar_form(
+    calendar_id: int, request: Request, db: Session = Depends(get_session)
+):
+    user = _require_user(request, db)
+    if user is None:
+        return RedirectResponse("/login", status_code=303)
+
+    cal = db.query(Calendar).filter(Calendar.id == calendar_id).one_or_none()
+    if cal is None or cal.connection.user_id != user.id:
+        raise HTTPException(status_code=404)
+
+    access = decrypt(cal.connection.notion_access_token_enc)
+    try:
+        info = get_database_properties(access, cal.database_id)
+    except Exception:
+        info = None
+
+    return render(request, "edit_calendar.html", calendar=cal, info=info)
+
+
+@router.post("/dashboard/calendars/{calendar_id}/update")
+def update_calendar(
+    calendar_id: int,
+    request: Request,
+    name: str = Form(...),
+    date_property: str = Form(...),
+    description_property: str | None = Form(None),
+    csrf_token: str = Form(...),
+    db: Session = Depends(get_session),
+):
+    user = _require_user(request, db)
+    if user is None:
+        return RedirectResponse("/login", status_code=303)
+    if not verify_csrf(request, csrf_token):
+        raise HTTPException(status_code=400, detail="CSRF check failed")
+
+    cal = db.query(Calendar).filter(Calendar.id == calendar_id).one_or_none()
+    if cal is None or cal.connection.user_id != user.id:
+        raise HTTPException(status_code=404)
+
+    cal.name = name.strip() or cal.name
+    cal.date_property = date_property
+    cal.description_property = (description_property or None) or None
+    db.commit()
+    flash(request, f"„{cal.name}“ aktualisiert.", kind="success")
     return RedirectResponse("/dashboard", status_code=303)
 
 
@@ -130,6 +180,8 @@ def delete_calendar(
     cal = db.query(Calendar).filter(Calendar.id == calendar_id).one_or_none()
     if cal is None or cal.connection.user_id != user.id:
         raise HTTPException(status_code=404)
+    cal_name = cal.name
     db.delete(cal)
     db.commit()
+    flash(request, f"„{cal_name}“ gelöscht.", kind="info")
     return RedirectResponse("/dashboard", status_code=303)
