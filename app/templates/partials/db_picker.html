@@ -1,0 +1,23 @@
+<div class="space-y-2">
+  {% if not databases %}
+    <p class="text-sm text-red-600">
+      Keine Datenbanken gefunden. Hast du beim OAuth eine Datenbank freigegeben?
+      <a href="/oauth/start" class="underline">Nochmal verbinden</a>.
+    </p>
+  {% else %}
+    <label class="block text-sm font-medium mb-1">Datenbank auswählen</label>
+    <div class="grid gap-2">
+      {% for db in databases %}
+        <button type="button"
+                hx-get="/dashboard/connections/{{ connection.id }}/databases/{{ db.id }}/properties"
+                hx-target="#property-picker-{{ connection.id }}"
+                hx-swap="innerHTML"
+                class="text-left px-3 py-2 rounded border border-slate-200 hover:border-slate-400 hover:bg-slate-50">
+          <div class="font-medium text-sm">{{ db.title }}</div>
+          <div class="text-xs text-slate-500">{{ db.date_properties|length }} Datums-Property{% if db.date_properties|length != 1 %}s{% endif %}</div>
+        </button>
+      {% endfor %}
+    </div>
+    <div id="property-picker-{{ connection.id }}" class="mt-4"></div>
+  {% endif %}
+</div>

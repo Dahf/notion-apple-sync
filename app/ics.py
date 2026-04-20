@@ -1,10 +1,16 @@
 from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
+from typing import Protocol
+
 from icalendar import Calendar, Event
 
-from .config import CalendarConfig
 from .notion import NotionEvent
+
+
+class CalendarLike(Protocol):
+    token: str
+    name: str
 
 
 def build_uid(page_id: str, calendar_token: str) -> str:
@@ -60,7 +66,7 @@ def _add_event(cal: Calendar, ev: NotionEvent, calendar_token: str) -> None:
     cal.add_component(vevent)
 
 
-def build_ics(cfg: CalendarConfig, events: list[NotionEvent]) -> bytes:
+def build_ics(cfg: CalendarLike, events: list[NotionEvent]) -> bytes:
     cal = Calendar()
     cal.add("prodid", "-//notion-apple-sync//DE")
     cal.add("version", "2.0")

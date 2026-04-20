@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="prose max-w-none">
+  <h1 class="text-2xl font-bold mb-4">Datenschutz</h1>
+
+  <h2 class="font-semibold mt-4">Was wir speichern</h2>
+  <ul class="list-disc pl-5 space-y-1 text-sm">
+    <li><strong>Email-Adresse</strong>: für Login via Magic Link.</li>
+    <li><strong>Notion-Workspace-Name und -ID</strong>: zur Anzeige auf dem Dashboard.</li>
+    <li><strong>Notion-Access-Token</strong>: verschlüsselt (Fernet) in der Datenbank. Wird nur zum Abruf deiner Kalender-Daten entschlüsselt.</li>
+    <li><strong>Kalender-Konfiguration</strong>: welche Notion-Database, welche Properties.</li>
+    <li><strong>IP-Adresse</strong>: temporär für Rate-Limits, nicht dauerhaft gespeichert.</li>
+  </ul>
+
+  <h2 class="font-semibold mt-4">Was wir NICHT tun</h2>
+  <ul class="list-disc pl-5 space-y-1 text-sm">
+    <li>Kein Tracking, keine Analytics, keine Werbe-Cookies.</li>
+    <li>Keine Weitergabe an Dritte außer den technischen Dienstleistern (Notion für Daten-Abruf, Resend für Login-Mails).</li>
+    <li>Dein Notion-Token verlässt unseren Server nicht im Klartext.</li>
+  </ul>
+
+  <h2 class="font-semibold mt-4">Deine Rechte</h2>
+  <p class="text-sm">Du kannst deinen Account jederzeit löschen, indem du alle Notion-Verbindungen trennst und uns eine Mail schreibst. Alle deine Daten werden dann gelöscht.</p>
+
+  <h2 class="font-semibold mt-4">Kontakt</h2>
+  <p class="text-sm">Siehe <a href="/imprint" class="underline">Impressum</a>.</p>
+</article>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="text-center max-w-2xl mx-auto">
+  <h1 class="text-4xl font-bold tracking-tight mb-4">Notion → Apple Calendar</h1>
+  <p class="text-lg text-slate-600 mb-8">
+    Verbinde deine Notion-Datenbank mit Apple Calendar (oder jedem ICS-fähigen Client).
+    Einmalig einrichten, automatisch synchron.
+  </p>
+  <a href="/login" class="inline-flex items-center px-6 py-3 rounded-lg bg-slate-900 text-white font-medium hover:bg-slate-700">
+    Loslegen
+  </a>
+</div>
+
+<div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+  <div class="bg-white rounded-lg border border-slate-200 p-5">
+    <div class="text-2xl mb-2">1.</div>
+    <h3 class="font-semibold mb-1">Einloggen</h3>
+    <p class="text-slate-600">Email eingeben, Magic-Link klicken. Kein Passwort.</p>
+  </div>
+  <div class="bg-white rounded-lg border border-slate-200 p-5">
+    <div class="text-2xl mb-2">2.</div>
+    <h3 class="font-semibold mb-1">Notion verbinden</h3>
+    <p class="text-slate-600">OAuth-Flow, du wählst selbst welche Seiten zugreifbar sind.</p>
+  </div>
+  <div class="bg-white rounded-lg border border-slate-200 p-5">
+    <div class="text-2xl mb-2">3.</div>
+    <h3 class="font-semibold mb-1">Kalender abonnieren</h3>
+    <p class="text-slate-600">ICS-URL kopieren, in Apple Calendar einfügen. Fertig.</p>
+  </div>
+</div>
+{% endblock %}

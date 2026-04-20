@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-8">
+  <h1 class="text-2xl font-bold">Dashboard</h1>
+  <p class="text-slate-600 text-sm">Verwalte deine Notion-Verbindungen und Kalender-Feeds.</p>
+</div>
+
+{% if not connections %}
+  <div class="bg-white rounded-lg border border-slate-200 p-8 text-center">
+    <h2 class="text-lg font-semibold mb-2">Verbinde deinen Notion-Workspace</h2>
+    <p class="text-slate-600 mb-5">Du brauchst noch keine Notion-Integration — der OAuth-Flow kümmert sich darum.</p>
+    <a href="/oauth/start" class="inline-flex items-center px-5 py-2.5 rounded-md bg-slate-900 text-white font-medium hover:bg-slate-700">
+      Notion verbinden
+    </a>
+  </div>
+{% else %}
+  {% for conn in connections %}
+    <section class="mb-8 bg-white rounded-lg border border-slate-200">
+      <header class="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          {% if conn.workspace_icon %}<span class="text-lg">{{ conn.workspace_icon }}</span>{% endif %}
+          <span class="font-semibold">{{ conn.workspace_name }}</span>
+        </div>
+        <form method="post" action="/oauth/disconnect/{{ conn.id }}"
+              onsubmit="return confirm('Wirklich trennen? Alle Kalender dieses Workspaces werden gelöscht.');">
+          <button class="text-xs text-red-600 hover:underline">Trennen</button>
+        </form>
+      </header>
+
+      <div class="p-5 space-y-3">
+        {% set cals = calendars_by_conn[conn.id] %}
+        {% if cals %}
+          {% for cal in cals %}
+            <div class="flex items-start justify-between gap-3 p-3 rounded border border-slate-200">
+              <div class="flex-1 min-w-0">
+                <div class="font-medium">{{ cal.name }}</div>
+                <div class="mono text-xs text-slate-500 truncate">
+                  {{ base_url }}/cal/{{ cal.subscription_token }}.ics
+                </div>
+              </div>
+              <button onclick="navigator.clipboard.writeText('{{ base_url }}/cal/{{ cal.subscription_token }}.ics')"
+                      class="shrink-0 px-3 py-1.5 text-xs rounded bg-slate-100 hover:bg-slate-200">
+                Kopieren
+              </button>
+              <form method="post" action="/dashboard/calendars/{{ cal.id }}/delete"
+                    onsubmit="return confirm('Kalender löschen?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button class="shrink-0 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded">×</button>
+              </form>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-sm text-slate-500">Noch keine Kalender. Füge unten einen hinzu.</p>
+        {% endif %}
+
+        <details class="mt-4 border-t border-slate-100 pt-4">
+          <summary class="cursor-pointer text-sm font-medium text-slate-700 hover:text-slate-900">
+            + Kalender hinzufügen
+          </summary>
+          <div class="mt-4"
+               hx-get="/dashboard/connections/{{ conn.id }}/databases"
+               hx-trigger="toggle from:closest details"
+               hx-swap="innerHTML">
+            <p class="text-xs text-slate-500">Lade Notion-Datenbanken…</p>
+          </div>
+        </details>
+      </div>
+    </section>
+  {% endfor %}
+
+  <div class="text-center mt-6">
+    <a href="/oauth/start" class="text-sm text-slate-600 hover:text-slate-900 underline">
+      Weiteren Workspace verbinden
+    </a>
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,57 +1,81 @@
-# Plan v2: Multi-User Web-Service mit Notion OAuth
+# Plan v2: Multi-User Web-Service mit Notion OAuth + Magic-Link-Login
 
 ## Context
 
-v1 ist ein Single-User-Tool: NOTION_TOKEN in `.env`, Kalender in `config.yaml`, Deployment pro User.
+v1 ist ein Single-User-Tool: NOTION_TOKEN in `.env`, Kalender in `config.yaml`, Deployment pro User. Läuft bereits über Traefik auf `calendar.silasbeckmann.de` mit HTTPS + HSTS.
 
-v2 macht daraus einen öffentlichen Self-Service: User kommen auf eine Web-UI, verbinden per Notion-OAuth ihren Workspace, wählen eine Database + Property-Mapping, bekommen eine persönliche ICS-URL. Kein Account-System — die Dashboard-URL ist das Secret.
+v2 macht daraus einen öffentlichen Self-Service: User registrieren sich per Email (Magic Link), verbinden ihren Notion-Workspace via OAuth, wählen eine Database + Property-Mapping, bekommen eine persönliche ICS-URL. Ziel: auch für andere Nutzer öffnen, nicht nur Eigenbedarf.
 
 ## User-Entscheidungen (geklärt)
 
+- **Login**: Magic Link per Email (kein Passwort)
 - **Notion Auth**: OAuth (Public Integration bei Notion)
-- **Accounts**: Keine — Dashboard-URL `/d/<dashboard_token>` ist die Identität
 - **UI**: Jinja2 + HTMX + Tailwind (standalone CLI, kein Node)
-- **DB**: SQLite (eine Datei im Docker-Volume)
+- **DB**: SQLite (eine Datei im Docker-Volume, bereits gemountet unter `/app/config`)
+- **Email-Provider**: **Resend** (einfache HTTP-API, großzügiger Free Tier, macht SPF/DKIM). SMTP wäre trivial als Alternative (5 Zeilen Swap), falls du lieber deinen eigenen Mailserver nutzt.
+- **Reverse Proxy**: Traefik (bereits konfiguriert)
 
 ## User Flow
 
 ```
 Landing (/)
-  └─ [Connect Notion] → Notion OAuth
-                          └─ Callback (/oauth/callback)
-                               └─ DB: Connection anlegen, dashboard_token erzeugen
-                                    └─ Redirect → /d/<dashboard_token>
+  └─ [Login mit Email]
+       └─ POST /auth/request (Email-Input)
+            └─ MagicLink in DB anlegen, Mail versenden
+                 └─ User klickt Link in Mail
+                      └─ GET /auth/verify?token=...
+                           └─ User anlegen wenn neu, Session-Cookie setzen
+                                └─ Redirect → /dashboard
 
-Dashboard (/d/<dashboard_token>)
-  ├─ Liste der angelegten Kalender (mit ICS-URL zum Kopieren)
+Dashboard (/dashboard)   [auth-required]
+  ├─ (Falls noch keine Notion-Connection): [Connect Notion] → OAuth
+  │     └─ Callback → Connection in DB speichern, User zuordnen
+  ├─ Liste der Kalender (mit ICS-URL zum Kopieren)
   ├─ [+ Kalender hinzufügen]
-  │     ├─ Notion-DBs vom User laden (HTMX-Partial)
+  │     ├─ Notion-DBs laden (HTMX-Partial)
   │     ├─ DB auswählen → Properties laden
   │     ├─ Date-Property wählen (+ optional Description)
-  │     ├─ Kalendername vergeben
-  │     └─ Submit → DB: Calendar anlegen → ICS-URL anzeigen
+  │     ├─ Kalendername
+  │     └─ Submit → Calendar in DB, ICS-URL anzeigen
   ├─ [Kalender löschen]
-  └─ [Notion trennen] → löscht Connection + alle zugehörigen Calendars
+  ├─ [Notion-Workspace trennen] → löscht Connection + alle Calendars
+  └─ [Logout] → Session-Cookie löschen
 
-ICS (/cal/<subscription_token>.ics)
-  └─ wie v1: Notion-Query → ICS-Body, mit 10min Cache
+ICS (/cal/<subscription_token>.ics)   [public, token-based]
+  └─ wie v1: Notion-Query → ICS-Body, 10min Cache
 ```
 
-## Datenmodell (SQLite)
+## Datenmodell (SQLite / SQLAlchemy)
 
 ```python
+class User:
+    id: int (pk)
+    email: str (unique, lowercased)
+    created_at: datetime
+    last_login_at: datetime | None
+
+class MagicLink:
+    id: int (pk)
+    email: str (lowercased)            # user_id erst bei Verify gesetzt
+    token_hash: str (unique, sha256 hex)  # nur Hash gespeichert
+    expires_at: datetime               # now + 15min
+    used_at: datetime | None
+    created_at: datetime
+
 class Connection:
     id: int (pk)
-    dashboard_token: str (unique, secrets.token_urlsafe(32))
-    notion_access_token_enc: bytes  # Fernet-verschlüsselt
+    user_id: int (fk → User, cascade delete)
+    notion_access_token_enc: bytes     # Fernet-verschlüsselt
     workspace_name: str
     workspace_id: str
+    workspace_icon: str | None
     bot_id: str
     created_at: datetime
+    # Ein User kann theoretisch mehrere Workspaces verbinden → keine Unique-Constraint
 
 class Calendar:
     id: int (pk)
-    connection_id: int (fk → Connection)
+    connection_id: int (fk → Connection, cascade delete)
     subscription_token: str (unique, secrets.token_urlsafe(32))
     name: str
     database_id: str
@@ -62,70 +86,113 @@ class Calendar:
 
 ## Kritische Design-Entscheidungen
 
-### 1. Notion OAuth
-
-**Setup (einmalig, manuell)**:
-- https://www.notion.so/my-integrations → *New integration* → Type: **Public**
-- Redirect URI eintragen: `https://<host>/oauth/callback`
-- `NOTION_OAUTH_CLIENT_ID` + `NOTION_OAUTH_CLIENT_SECRET` in `.env`
+### 1. Magic-Link-Login
 
 **Flow**:
-1. `/oauth/start` → generiert `state` (CSRF), speichert in signed Cookie, redirectet zu:
-   ```
-   https://api.notion.com/v1/oauth/authorize
-     ?client_id=...&response_type=code&owner=user&redirect_uri=...&state=...
-   ```
-2. `/oauth/callback?code=...&state=...` → verifiziert state → POST zu `https://api.notion.com/v1/oauth/token` mit HTTP-Basic-Auth `(client_id:client_secret)` und JSON-Body `{grant_type, code, redirect_uri}` → bekommt `{access_token, workspace_id, workspace_name, bot_id}` → DB insert → Redirect auf Dashboard
+1. `GET /login` → Template mit Email-Input
+2. `POST /auth/request` mit `{email}` → 
+   - Email auf `lower().strip()` normalisieren
+   - Rate-Limit prüfen (`slowapi`, 3 Requests/10min/Email **und** pro IP)
+   - `raw_token = secrets.token_urlsafe(32)`
+   - `token_hash = sha256(raw_token)` → in DB speichern (Raw-Token verlässt DB nicht)
+   - Resend-API: Mail an `email` mit Link `https://calendar.silasbeckmann.de/auth/verify?token=<raw_token>`
+   - Response: immer `"Wenn die Adresse registriert oder neu ist, findest du den Link in deinem Postfach"` (kein Email-Enumeration-Leak)
+3. `GET /auth/verify?token=<raw>` → 
+   - `sha256(raw)` in DB suchen
+   - Prüfen: nicht expired, `used_at IS NULL`
+   - `used_at = now()` setzen
+   - User per Email finden oder anlegen
+   - `last_login_at` updaten
+   - Session-Cookie setzen (`user_id`, signed, `HttpOnly`, `Secure`, `SameSite=Lax`, 30 Tage)
+   - Redirect → `/dashboard`
+4. `POST /auth/logout` → Cookie löschen, Redirect → `/`
 
-**Wichtig**: Notion OAuth gibt pro Authorization **einen** Token, der Zugriff auf genau die Pages hat, die der User im OAuth-Dialog ausgewählt hat. Bei neuen Pages muss der User den OAuth-Flow erneut durchlaufen (Notion zeigt dann denselben Dialog mit Zusatzauswahl).
+**Security**:
+- Nur Hash gespeichert → DB-Leak gibt Angreifer keine gültigen Tokens
+- Links sind single-use (`used_at`)
+- 15min Expiry
+- Same-Device-Check bewusst **nicht** (User öffnet Mail oft auf Phone, will im Desktop-Browser einloggen)
 
-### 2. Verschlüsselung der Notion-Tokens
+### 2. Session-Management
 
-SQLite-Datei könnte bei Backup/Leak offenliegen. Deshalb:
+Starlette `SessionMiddleware` mit `SESSION_SECRET` (32 bytes), signed Cookie, kein Server-Side-Store nötig. Inhalt: `{"user_id": int}`. Rotation bei Logout durch Clear. Cookie-Lifetime 30 Tage Sliding Expiration.
 
-- `FERNET_KEY` in `.env` (einmalig mit `Fernet.generate_key()` generiert)
-- `notion_access_token` wird mit Fernet verschlüsselt, bevor es in die DB geht
-- Entschlüsselt nur in-Memory, nie geloggt
-- Key-Rotation wäre machbar (neuer Key, alle Records re-encrypten), aber out-of-scope für MVP
+FastAPI-Dependency `get_current_user(request) -> User` → `HTTPException(401) → redirect /login` für Dashboard-Routes.
 
-### 3. Dashboard-URL als Identität
+### 3. Email-Versand (Resend)
 
-- `dashboard_token` = 32 bytes urlsafe = ~43 Chars → nicht brute-forcebar
-- User wird gewarnt: **"Bookmark diese URL — ohne sie kein Zugriff mehr auf deine Kalender. Wir können sie nicht wiederherstellen."**
-- Kein Recovery-Flow im MVP (würde Email voraussetzen)
+- Signup bei resend.com (free), Domain `silasbeckmann.de` verifizieren (DNS: SPF, DKIM, optional DMARC)
+- API-Key in ENV
+- `httpx` client, POST `https://api.resend.com/emails`:
+  ```json
+  {
+    "from": "Notion Calendar <noreply@calendar.silasbeckmann.de>",
+    "to": "user@example.com",
+    "subject": "Dein Login-Link",
+    "html": "<a href='https://.../auth/verify?token=...'>Einloggen</a> (15 Min gültig)"
+  }
+  ```
+- Fehler beim Mail-Versand → generische 500-Seite, detailliert loggen, Link **nicht** im UI anzeigen
+- Fallback-Provider: SMTP via `aiosmtplib` (Modul-Tausch wäre ~20 Zeilen)
 
-### 4. ICS-Route (bleibt öffentlich)
+### 4. Notion OAuth
 
-- `GET /cal/<subscription_token>.ics` — wie v1
-- Lookup: `SELECT * FROM calendars WHERE subscription_token = ?`
-- Bei Treffer: Connection laden, Notion-Token entschlüsseln, Query laufen lassen, ICS bauen
-- 10min TTL-Cache pro subscription_token (wie v1, unverändert)
-- 404 bei unbekanntem Token (konstante Timing-Unterschiede sind unkritisch, Token ist 256-bit-Random)
+Identisch zum vorigen Plan:
+- **Setup**: `notion.so/my-integrations` → Public Integration → Redirect URI `https://calendar.silasbeckmann.de/oauth/callback`
+- ENV: `NOTION_OAUTH_CLIENT_ID`, `NOTION_OAUTH_CLIENT_SECRET`
+- **Flow**:
+  1. `/oauth/start` (auth-required) → generiert `state`, schreibt in Session, redirectet zu `https://api.notion.com/v1/oauth/authorize?...&state=...&owner=user`
+  2. `/oauth/callback?code=...&state=...` (auth-required) → state prüfen → POST zu `https://api.notion.com/v1/oauth/token` mit Basic-Auth → Token encrypten → Connection anlegen, `user_id` = `session.user_id` → Redirect → `/dashboard`
 
-### 5. Sicherheit
+### 5. Verschlüsselung
 
-- OAuth `state` Parameter (CSRF auf Callback)
-- Alle state-ändernden Requests auf Dashboard-Routen: POST + HTMX setzt standardmäßig `HX-Request` Header → simple CSRF-Barriere (plus Same-Origin-Policy bei realem Browser-Setup)
-- `dashboard_token` ist in der URL → Warnung an User, keine Browser-Screenshots/History zu teilen
-- Kein User-Input in Notion-Queries außer `database_id` (der vom User kommt, aber immer mit seinem eigenen Workspace-Token genutzt wird) → keine SSRF/Injection-Fläche
-- HTTPS-only (Set-Cookie `Secure`, HSTS wird vom Reverse Proxy gesetzt)
-- Rate Limit: `slowapi` Middleware auf `/oauth/callback` (max 10/min/IP), auf `/cal/*` (max 60/min/IP)
+- `FERNET_KEY` in ENV (`Fernet.generate_key()`, base64)
+- Nur `notion_access_token` verschlüsselt (höchster Wert bei DB-Leak)
+- Email-Adressen bleiben Klartext (nötig für Lookup, auch sensibel aber Recovery sonst unmöglich)
+- User-Warnung in Privacy-Text: "Wir speichern deine Notion-Tokens verschlüsselt. Bei Kompromittierung unserer Server können Angreifer ohne Key nichts damit anfangen."
 
-### 6. Caching-Strategie
+### 6. ICS-Route
 
-Zwei Caches:
-- **ICS-Cache** (wie v1): key = `subscription_token`, TTL 10min, value = ICS-bytes
-- **Database-Liste-Cache** (neu, für UI): key = `connection_id`, TTL 60s, value = List[{id, title, properties}] — damit HTMX-Requests beim Dropdown-Öffnen nicht jedes Mal Notion hämmern
+Unverändert zu v1:
+- `GET /cal/<subscription_token>.ics` — öffentlich, kein Auth
+- Lookup → Connection → decrypt token → Notion query → ICS
+- 10min Cache pro Token (bestehender `cache.py` wiederverwendet)
 
-### 7. Migration von v1
+### 7. Sicherheit (Gesamtpaket)
 
-v1 war Greenfield und ist frisch. Keine echten User. → Harte Ablösung:
-- `config.yaml` / `config.example.yaml` löschen
-- `app/config.py` komplett neu (Pydantic-Settings für ENV-Vars, kein YAML mehr)
-- `app/notion.py` erweitert: OAuth-Funktionen + weiterhin Property-Parsing + DB-Listing
-- `app/ics.py` bleibt **unverändert** (reuse!)
-- `app/cache.py` bleibt **unverändert** (reuse!)
-- `tests/test_ics.py` bleibt größtenteils, `CalendarConfig` wird durch neues DB-Model ersetzt → Test-Fixtures anpassen
+- Traefik setzt HSTS, HTTPS-Redirect, CT-Header, XSS-Filter (siehe compose-Labels) ✓
+- OAuth `state` in Session (CSRF)
+- Magic-Link: single-use, 15min, nur Hash in DB, Rate-Limit
+- Session-Cookie: `HttpOnly`, `Secure`, `SameSite=Lax`
+- HTMX-Requests auf Dashboard haben `HX-Request` Header → CSRF-Barriere für AJAX (Form-Posts brauchen zusätzlich signed Token in Hidden-Field — SessionMiddleware kann das liefern)
+- Rate-Limits:
+  - `/auth/request`: 3/10min/Email **und** 10/10min/IP
+  - `/oauth/callback`: 10/min/IP
+  - `/cal/*`: 60/min/IP
+- Secrets niemals loggen (custom log filter, oder einfach `repr` von Models ohne sensitive fields)
+- Privacy-/Impressum-Seite (für öffentlichen Betrieb in DE rechtlich nötig)
+
+### 8. Caching
+
+Zwei Caches (bestehender `cache.py` + neuer für UI):
+- **ICS-Cache**: key = `subscription_token`, TTL 10min, value = ICS-bytes (wie v1)
+- **Notion-DB-Liste-Cache**: key = `connection_id`, TTL 60s, value = List[DB-Metadata] — entlastet Notion beim HTMX-Dropdown
+
+### 9. Migration von v1
+
+v1 läuft als persönliche Instanz. Die `config.yaml` mit deinem echten Kalender kann in einem Seed-Skript übernommen werden — aber sauberer: einmal manuell neu einloggen, OAuth machen, Kalender einrichten. Dauert 2min.
+
+- Alte Dateien: `config.py` (YAML-Loader) wird ersetzt durch neuen `settings.py` + DB-Models. `config.example.yaml` kann weg.
+- `app/ics.py` bleibt **unverändert** (reuse)
+- `app/cache.py` bleibt **unverändert** (reuse)
+- `app/notion.py` erweitert (OAuth-Funktionen + DB-Listing) — Property-Parsing bleibt
+- Docker-Volume-Mount `./config:/app/config` bleibt, beherbergt jetzt `app.db` + Fernet-Key-File
+
+### 10. Traefik-Setup
+
+Labels sind schon gesetzt — bleiben im Wesentlichen. Einzige Änderung: keine zusätzliche Route, alles läuft unter derselben Domain. Bei Multi-User-Betrieb evtl. später noch:
+- `rate-limit` Middleware bei Traefik als zweite Verteidigungslinie
+- `forwardAuth` nicht nötig (Auth passiert in-app)
 
 ## Neue Projektstruktur
 
@@ -133,22 +200,31 @@ v1 war Greenfield und ist frisch. Keine echten User. → Harte Ablösung:
 notion-apple-sync/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py               # FastAPI app, Router-Mounts, Startup
-│   ├── settings.py           # Pydantic-Settings (ENV-basiert)
-│   ├── db.py                 # SQLAlchemy-Setup, Models, Session
+│   ├── main.py               # FastAPI app, Router-Mounts, Middleware
+│   ├── settings.py           # Pydantic-Settings (ENV)
+│   ├── db.py                 # SQLAlchemy engine, session, Base
+│   ├── models.py             # User, MagicLink, Connection, Calendar
 │   ├── crypto.py             # Fernet encrypt/decrypt
+│   ├── mailer.py             # Resend-Client
+│   ├── auth.py               # Magic-Link-Logik, Session-Helpers, get_current_user
 │   ├── cache.py              # UNCHANGED
-│   ├── ics.py                # UNCHANGED (Mapping von DB-Model statt Config)
+│   ├── ics.py                # UNCHANGED (Input: Calendar-Model statt Config)
 │   ├── notion.py             # OAuth + DB-Query + Property-Parsing
-│   ├── deps.py               # FastAPI-Dependencies (get_db, get_connection)
 │   ├── routes/
 │   │   ├── __init__.py
-│   │   ├── public.py         # / (Landing), /oauth/start, /oauth/callback, /cal/<token>.ics
-│   │   └── dashboard.py      # /d/<token>, /d/<token>/calendars (POST/DELETE), HTMX-Partials
+│   │   ├── public.py         # /, /login, /auth/request, /auth/verify, /cal/<token>.ics, /privacy, /imprint
+│   │   ├── oauth.py          # /oauth/start, /oauth/callback, /oauth/disconnect
+│   │   └── dashboard.py      # /dashboard, /dashboard/calendars (POST/DELETE), HTMX-Partials, /auth/logout
 │   ├── templates/
-│   │   ├── base.html
+│   │   ├── base.html         # Layout mit Nav + Flash-Messages
 │   │   ├── landing.html
+│   │   ├── login.html
+│   │   ├── login_sent.html   # "Check deine Mails"
 │   │   ├── dashboard.html
+│   │   ├── privacy.html
+│   │   ├── imprint.html
+│   │   ├── email/
+│   │   │   └── magic_link.html
 │   │   └── partials/
 │   │       ├── calendar_list.html
 │   │       ├── db_picker.html
@@ -156,16 +232,19 @@ notion-apple-sync/
 │   └── static/
 │       └── app.css           # Tailwind-Output
 ├── tests/
-│   ├── test_ics.py           # Angepasst
+│   ├── test_ics.py           # Fixtures anpassen (Calendar-Model statt Config)
 │   ├── test_crypto.py        # Roundtrip
-│   ├── test_oauth.py         # State-Handling, Callback (mit HTTP-Mock)
-│   └── test_routes.py        # Dashboard-Flows (FastAPI TestClient)
-├── migrations/
-│   └── 001_init.sql          # Schema (oder Alembic, MVP: plain SQL)
+│   ├── test_auth.py          # Magic-Link flow, Expiry, Single-Use, Hashing
+│   ├── test_oauth.py         # State, Callback mit httpx Mock
+│   └── test_routes.py        # Dashboard-Auth-Gating, CRUD
+├── migrations/               # Alembic (lightweight)
+│   └── versions/
+├── alembic.ini
 ├── scripts/
-│   └── build_css.sh          # Tailwind CLI Build
-├── Dockerfile                # Multi-Stage: Tailwind-Build + Python-Runtime
-├── docker-compose.yml        # Volume für SQLite + Static
+│   └── build_css.sh
+├── Dockerfile                # Multi-Stage (Tailwind-Build + Python-Runtime); entrypoint.sh bleibt
+├── entrypoint.sh             # (vorhanden) — plus Alembic-Upgrade beim Start
+├── docker-compose.yml        # Labels bleiben, neue ENV-Vars
 ├── requirements.txt
 ├── .env.example
 └── README.md
@@ -174,76 +253,111 @@ notion-apple-sync/
 ## Environment Variables
 
 ```
-# v2 neu
+# Notion OAuth
 NOTION_OAUTH_CLIENT_ID=
 NOTION_OAUTH_CLIENT_SECRET=
-OAUTH_REDIRECT_URI=https://deinhost/oauth/callback
-FERNET_KEY=             # Fernet.generate_key()
-SESSION_SECRET=         # für signed state-Cookie bei OAuth
-BASE_URL=https://deinhost
-DATABASE_URL=sqlite:///./data/app.db
+OAUTH_REDIRECT_URI=https://calendar.silasbeckmann.de/oauth/callback
+
+# Secrets
+FERNET_KEY=                    # Fernet.generate_key()
+SESSION_SECRET=                # 32 bytes urlsafe
+
+# Email (Resend)
+RESEND_API_KEY=
+MAIL_FROM=Notion Calendar <noreply@calendar.silasbeckmann.de>
+
+# Allgemein
+BASE_URL=https://calendar.silasbeckmann.de
+DATABASE_URL=sqlite:///./config/app.db
 CACHE_TTL=600
 ```
 
 ## Tailwind-Setup (ohne Node)
 
-- `tailwindcss-cli` standalone binary in Dockerfile ziehen
+- Standalone `tailwindcss` Binary in Dockerfile-Builder-Stage
 - `scripts/build_css.sh` scannt `app/templates/**/*.html` → schreibt `app/static/app.css`
-- Multi-Stage-Dockerfile: Stage 1 = CSS-Build, Stage 2 = Runtime
+- Multi-Stage Dockerfile: Stage 1 = CSS-Build, Stage 2 = Runtime (basiert auf dem bereits angepassten Dockerfile mit `gosu`+`entrypoint.sh`)
 
 ## Tests
 
-Behalten + neu:
-- **Behalten**: alle v1-ICS-Tests (ggf. leichte Fixture-Anpassung)
-- **Neu `test_crypto.py`**: Fernet roundtrip, Key-Fehler handhaben
-- **Neu `test_oauth.py`**: State-Generation + -Verifikation, Callback mit gemocktem HTTP-Response
-- **Neu `test_routes.py`**: 
-  - Landing 200
-  - Dashboard mit invalid token → 404
-  - Dashboard mit valid token → eigene Calendar-Liste sichtbar, fremde nicht
-  - Calendar anlegen → taucht in Liste auf
-  - Calendar löschen → weg
-  - `/cal/<sub>.ics` → korrekter Content-Type, ICS-Body
+- **test_ics.py** (behalten, Fixtures: Calendar-Model mit subscription_token statt CalendarConfig)
+- **test_crypto.py** (neu): Fernet roundtrip, fehlender Key → klare Exception
+- **test_auth.py** (neu):
+  - request → MagicLink in DB, Hash passt, Raw-Token nur in Mail
+  - verify mit gültigem Token → Session-Cookie gesetzt, `used_at` gesetzt, User angelegt
+  - verify zweimal mit selbem Token → 400
+  - verify nach Expiry → 400
+  - Rate-Limit auf `/auth/request`
+- **test_oauth.py** (neu): State-Handling, Callback mit gemocktem Notion-Response
+- **test_routes.py** (neu):
+  - `/dashboard` ohne Session → 302 `/login`
+  - Calendar-CRUD happy path
+  - User A sieht keine Calendars von User B
+  - ICS-Route mit fremdem Token funktioniert (public), mit invalid → 404
 
 ## Verifikation End-to-End
 
 1. `pytest` grün
-2. `docker compose up` lokal, echte Notion Public Integration registriert
-3. Browser → `/` → "Connect Notion" → OAuth-Dialog → Callback → Dashboard
-4. "Kalender hinzufügen" → DB wählen → Date-Property wählen → ICS-URL anzeigen
-5. `curl <ICS-URL>` → valide ICS
-6. ICS-Validator (https://icalendar.org/validator.html) → keine Fehler
-7. URL in Apple Calendar abonnieren → Events erscheinen
-8. Event in Notion ändern → Apple Refresh → Änderung da, keine Duplikate
-9. Dashboard: zweiten Kalender anlegen → zweite URL → parallel abonnieren
-10. "Trennen" → alle ICS-URLs des Users geben 404
+2. Resend-Domain-Setup: SPF + DKIM-DNS-Records, Verification grün
+3. Notion Public Integration registriert, Redirect URI produktiv
+4. `docker compose up -d --build` → Traefik-Route live
+5. Browser → `https://calendar.silasbeckmann.de/` → "Login" → Email eintragen
+6. Mail kommt an (in Dev: Resend-Dashboard zeigt Versand)
+7. Link klicken → Dashboard sichtbar
+8. "Connect Notion" → OAuth-Flow → zurück auf Dashboard mit Workspace-Name
+9. "Kalender hinzufügen" → DB wählen → Date-Property → Submit → ICS-URL
+10. `curl <ICS-URL>` → valides ICS
+11. ICS-Validator → keine Fehler
+12. In Apple Calendar abonnieren → Events sichtbar
+13. Notion-Event ändern → nach Refresh Update in Apple, keine Duplikate
+14. Logout → Dashboard nicht mehr erreichbar, ICS-URL aber weiterhin aktiv (by design)
+15. Neuen User mit anderer Email anlegen → sieht eigenes Dashboard, keine Calendars des ersten Users
 
 ## Aufwandsschätzung
 
 | Block | Aufwand |
 |-------|---------|
-| Settings + SQLite + SQLAlchemy-Models + Migrations | 1h |
-| Crypto-Modul (Fernet) + Tests | 30min |
-| Notion OAuth (start + callback + token exchange) | 1.5h |
-| Notion DB-Listing + Property-Inspection (für UI) | 1h |
-| FastAPI-Routes (public + dashboard) | 1.5h |
-| Jinja-Templates + HTMX-Partials | 2h |
+| Settings + SQLite + SQLAlchemy + Alembic-Setup | 1.5h |
+| User + MagicLink-Models + Migrations | 30min |
+| Crypto-Modul | 30min |
+| Mailer (Resend) + Template | 45min |
+| Auth-Routes (`/login`, request, verify, logout) + Session-Middleware | 1.5h |
+| Notion OAuth (start + callback + disconnect) | 1.5h |
+| Notion DB-Listing + Property-Inspection | 1h |
+| Dashboard-Routes + Calendar-CRUD (HTMX) | 2h |
+| Templates (landing, login, dashboard, email, privacy, imprint) | 2.5h |
 | Tailwind-Setup + Styling | 1.5h |
-| Tests (crypto, oauth, routes) | 1.5h |
-| Docker Multi-Stage + compose anpassen | 45min |
-| OAuth manuell bei Notion registrieren + E2E-Test | 1h |
+| Tests (crypto, auth, oauth, routes) | 2h |
+| Docker Multi-Stage + Alembic-Autorun im entrypoint | 45min |
+| Resend-Domain-Setup (DNS + Verification) | 30min |
+| Notion-OAuth manuell registrieren + E2E-Durchlauf | 1h |
+| Privacy/Imprint-Texte | 30min |
 
-**Gesamt ~12h** — ein volles Wochenende, oder zwei Abende pro Block aufgeteilt.
+**Gesamt ~18h** — realistisch ein Wochenende, oder 3–4 Abendblöcke.
 
-## Nicht im MVP
+## Nicht im MVP (v3-Kandidaten)
 
-- Email-basierter Dashboard-URL-Recovery
+- Social Login (Google, Apple) — Magic Link reicht
+- Team-Accounts / shared Workspaces
 - Kalender-Ansicht mit Event-Preview in der UI
-- Multi-Property-Support (mehrere Date-Properties pro DB → mehrere Events pro Page)
-- Recurring Events aus Notion (Notion hat kein natives Recurrence-Feature)
-- Reminders/Alarms (müsste man pro Kalender konfigurieren können)
-- Admin-Panel / User-Management
+- Mehrere Date-Properties pro DB → mehrere Events pro Page
+- Recurring Events (Notion hat keine native Recurrence)
+- Reminders/Alarms konfigurierbar pro Kalender
+- Admin-Panel / User-Liste
 - Postgres-Migration
-- Rate-Limiting pro Connection (aktuell nur pro IP)
+- CAPTCHA auf Login (erst bei Abuse nötig)
+- Webhook statt Polling (Notion hat Webhooks inzwischen, könnte Cache ersetzen)
 
-Das sind alles denkbare v3-Themen.
+## Finale Entscheidungen
+
+- **Mail-From**: `noreply@calendar.silasbeckmann.de`
+- **Impressum**: Ja, wird implementiert (Inhalt als Jinja-Template mit Platzhaltern, die du ausfüllst)
+- **Notion Public Integration**: Wird als Public registriert. Während Review-Phase läuft die Integration bereits funktional (Notion erlaubt Nutzung vor Approval, nur Listing im Integration-Gallery ist blockiert)
+
+## Manuelle Prep-Schritte (parallel zum Coden durch dich)
+
+1. **Resend-Account** erstellen → Domain `calendar.silasbeckmann.de` verifizieren (DNS: SPF + DKIM hinzufügen, Resend zeigt die Records) → API-Key kopieren
+2. **Notion Public Integration** unter [notion.so/my-integrations](https://www.notion.so/my-integrations) erstellen → Type *Public* → Redirect URI `https://calendar.silasbeckmann.de/oauth/callback` → Client-ID + Client-Secret kopieren → Public-Submit für Review (läuft parallel)
+3. **Impressum-Daten** bereitstellen: vollständiger Name, postalische Adresse, Kontakt-Email. Ohne diese Pflichtangaben ist der Dienst in DE nicht legal öffentlich betreibbar
+4. **Privacy-Text**: Grob-Entwurf kommt im Template — du musst ihn nochmal selbst durchgehen (was gespeichert wird: Email, Notion-Workspace-Name, verschlüsselter Token, IP temporär für Rate-Limits, keine Tracking-Cookies)
+5. **ENV-Vars generieren**: `FERNET_KEY` via `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`, `SESSION_SECRET` via `openssl rand -hex 32`

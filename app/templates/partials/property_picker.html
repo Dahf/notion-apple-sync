@@ -1,0 +1,40 @@
+{% if not info.date_properties %}
+  <p class="text-sm text-red-600">Diese Datenbank hat keine Date-Property. Füge in Notion eine Spalte vom Typ "Date" hinzu.</p>
+{% else %}
+  <form method="post" action="/dashboard/calendars" class="space-y-3 bg-slate-50 p-4 rounded border border-slate-200">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="connection_id" value="{{ connection.id }}">
+    <input type="hidden" name="database_id" value="{{ info.id }}">
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Kalender-Name (wie er in Apple erscheint)</label>
+      <input type="text" name="name" value="{{ info.title }}" required
+             class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Date-Property</label>
+      <select name="date_property" required
+              class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+        {% for p in info.date_properties %}
+          <option value="{{ p }}">{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Description-Property (optional)</label>
+      <select name="description_property"
+              class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+        <option value="">— keine —</option>
+        {% for p in info.text_properties %}
+          <option value="{{ p }}">{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit" class="px-4 py-2 rounded bg-slate-900 text-white text-sm font-medium hover:bg-slate-700">
+      Kalender anlegen
+    </button>
+  </form>
+{% endif %}

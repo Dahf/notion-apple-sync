@@ -4,7 +4,8 @@
       "Bash(python -m venv .venv)",
       "Bash(.venv/Scripts/python.exe -m pip install --quiet -r requirements.txt)",
       "Bash(.venv/Scripts/python.exe -m pytest tests/ -v)",
-      "Bash(curl -sI https://calendar.silasbeckmann.de/cal/3ae3a89a6b91ba74316de15560a36a62.ics)"
+      "Bash(rm -f test_app.db)",
+      "Bash(.venv/Scripts/python.exe -m pytest tests/)"
     ]
   }
 }

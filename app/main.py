@@ -1,45 +1,41 @@
-import os
+from fastapi import FastAPI
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import PlainTextResponse
 
-from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Response
-from notion_client import Client
-
-from .cache import TTLCache
-from .config import AppConfig, load_config
-from .ics import build_ics
-from .notion import fetch_events
-
-load_dotenv()
-
-app = FastAPI(title="notion-apple-sync")
-
-_config: AppConfig = load_config(os.getenv("CONFIG_PATH", "config.yaml"))
-_notion = Client(auth=os.environ["NOTION_TOKEN"])
-_cache = TTLCache(ttl_seconds=int(os.getenv("CACHE_TTL", "600")))
+from .db import init_db
+from .routes import dashboard, oauth, public
+from .settings import settings
 
 
-@app.get("/health")
-def health() -> dict[str, bool]:
-    return {"ok": True}
+def create_app() -> FastAPI:
+    init_db()
 
-
-@app.api_route("/cal/{token}.ics", methods=["GET", "HEAD"])
-def calendar_feed(token: str) -> Response:
-    cfg = _config.by_token(token)
-    if cfg is None:
-        raise HTTPException(status_code=404, detail="Unknown calendar")
-
-    cached = _cache.get(token)
-    if cached is None:
-        events = fetch_events(_notion, cfg)
-        cached = build_ics(cfg, events)
-        _cache.set(token, cached)
-
-    return Response(
-        content=cached,
-        media_type="text/calendar; charset=utf-8",
-        headers={
-            "Content-Disposition": f'inline; filename="{cfg.name}.ics"',
-            "Cache-Control": "public, max-age=600",
-        },
+    app = FastAPI(title="notion-apple-sync")
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=settings.session_secret,
+        https_only=settings.base_url.startswith("https://"),
+        same_site="lax",
+        max_age=60 * 60 * 24 * 30,
     )
+    app.add_middleware(SlowAPIMiddleware)
+    app.state.limiter = public.limiter
+
+    @app.exception_handler(RateLimitExceeded)
+    async def rate_limit_handler(request, exc):
+        return PlainTextResponse("Rate limit exceeded. Try again later.", status_code=429)
+
+    app.include_router(public.router)
+    app.include_router(oauth.router)
+    app.include_router(dashboard.router)
+
+    @app.get("/health")
+    def health():
+        return {"ok": True}
+
+    return app
+
+
+app = create_app()

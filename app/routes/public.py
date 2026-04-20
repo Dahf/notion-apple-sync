@@ -1,0 +1,108 @@
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
+from fastapi.responses import RedirectResponse
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from sqlalchemy.orm import Session
+
+from ..auth import consume_magic_link, create_magic_link, login_session, logout_session
+from ..cache import TTLCache
+from ..crypto import decrypt
+from ..db import get_session
+from ..ics import build_ics
+from ..mailer import send_email
+from ..models import Calendar
+from ..notion import fetch_events
+from ..settings import settings
+from ..templating import render
+
+router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
+_ics_cache = TTLCache(ttl_seconds=settings.cache_ttl)
+
+
+@router.get("/")
+def landing(request: Request):
+    return render(request, "landing.html")
+
+
+@router.get("/login")
+def login_form(request: Request):
+    return render(request, "login.html")
+
+
+@router.post("/auth/request")
+@limiter.limit("10/10 minutes")
+def auth_request(
+    request: Request,
+    email: str = Form(...),
+    db: Session = Depends(get_session),
+):
+    email = email.strip().lower()
+    if "@" in email and "." in email.split("@")[-1]:
+        raw = create_magic_link(db, email)
+        link = f"{settings.base_url}/auth/verify?token={raw}"
+        html = (
+            f"<p>Hi!</p><p>Klicke auf diesen Link, um dich einzuloggen:</p>"
+            f'<p><a href="{link}">{link}</a></p>'
+            f"<p>Der Link ist 15 Minuten gültig und kann nur einmal verwendet werden.</p>"
+            f"<p>Wenn du das nicht warst, ignoriere diese Mail.</p>"
+        )
+        try:
+            send_email(email, "Dein Login-Link", html)
+        except Exception:
+            pass  # don't leak errors to UI
+    return render(request, "login_sent.html", email=email)
+
+
+@router.get("/auth/verify")
+def auth_verify(token: str, request: Request, db: Session = Depends(get_session)):
+    user = consume_magic_link(db, token)
+    if user is None:
+        return render(request, "login.html", error="Link ungültig oder abgelaufen.")
+    login_session(request, user)
+    return RedirectResponse("/dashboard", status_code=303)
+
+
+@router.post("/auth/logout")
+def auth_logout(request: Request):
+    logout_session(request)
+    return RedirectResponse("/", status_code=303)
+
+
+@router.get("/privacy")
+def privacy(request: Request):
+    return render(request, "privacy.html")
+
+
+@router.get("/imprint")
+def imprint(request: Request):
+    return render(request, "imprint.html")
+
+
+@router.api_route("/cal/{token}.ics", methods=["GET", "HEAD"])
+@limiter.limit("60/minute")
+def ics_feed(token: str, request: Request, db: Session = Depends(get_session)):
+    calendar = db.query(Calendar).filter(Calendar.subscription_token == token).one_or_none()
+    if calendar is None:
+        raise HTTPException(status_code=404, detail="Unknown calendar")
+
+    cached = _ics_cache.get(token)
+    if cached is None:
+        access_token = decrypt(calendar.connection.notion_access_token_enc)
+        events = fetch_events(
+            access_token,
+            calendar.database_id,
+            calendar.date_property,
+            calendar.description_property,
+        )
+        cached = build_ics(calendar, events)
+        _ics_cache.set(token, cached)
+
+    return Response(
+        content=cached,
+        media_type="text/calendar; charset=utf-8",
+        headers={
+            "Content-Disposition": f'inline; filename="{calendar.name}.ics"',
+            "Cache-Control": "public, max-age=600",
+        },
+    )
