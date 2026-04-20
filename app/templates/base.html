@@ -75,27 +75,17 @@
       background-attachment: fixed;
     }
 
-    /* Fixed decorative calendar-grid — viewport-pinned, behind all content */
+    /* Fixed decorative calendar-grid — viewport-centered, behind all content */
     .fixed-grid {
       position: fixed;
-      top: 0;
-      right: 0;
-      width: min(36vw, 440px);
-      height: 100vh;
-      padding: 24px 28px;
+      inset: 0;
       z-index: 0;
       pointer-events: none;
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      grid-auto-rows: 58px;
-      gap: 8px;
-      mask-image: linear-gradient(to left, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.5) 60%, transparent 100%);
-      -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.5) 60%, transparent 100%);
-    }
-    .fixed-grid > span {
-      background: #f1efe6;
-      border-radius: 10px;
-      box-shadow: inset 0 0 0 1px rgba(26,22,19,0.04);
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='68' height='68' viewBox='0 0 68 68'><rect x='4' y='4' width='60' height='60' rx='10' ry='10' fill='none' stroke='%231a1613' stroke-opacity='0.08' stroke-width='1'/></svg>");
+      background-position: center center;
+      background-repeat: repeat;
+      mask-image: radial-gradient(circle at center, black 0%, rgba(0,0,0,0.75) 20%, transparent 55%);
+      -webkit-mask-image: radial-gradient(circle at center, black 0%, rgba(0,0,0,0.75) 20%, transparent 55%);
     }
     @media (max-width: 767px) {
       .fixed-grid { display: none; }
@@ -299,9 +289,7 @@
 <body class="min-h-screen antialiased">
 
   {# Fixed decorative grid — visible across all pages, behind content #}
-  <div aria-hidden="true" class="fixed-grid" id="fixed-grid">
-    {% for _ in range(80) %}<span></span>{% endfor %}
-  </div>
+  <div aria-hidden="true" class="fixed-grid"></div>
 
   <header class="max-w-5xl mx-auto px-6 md:px-8 py-6">
     <div class="flex items-baseline justify-between">
