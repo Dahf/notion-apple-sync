@@ -4,7 +4,7 @@ services:
     container_name: notion-apple-sync
     restart: unless-stopped
     volumes:
-      - ./config.yaml:/app/config.yaml:ro
+      - ./config:/app/config
     labels:
       - traefik.enable=true
       - traefik.http.routers.calendar.entrypoints=web,websecure
