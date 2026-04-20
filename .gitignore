@@ -9,3 +9,7 @@ config.yaml
 .vscode/
 .idea/
 *.egg-info/
+
+# Tailwind build artifacts (CSS is built during Docker build; local `.bin/` holds the CLI)
+.bin/
+app/static/css/app.css

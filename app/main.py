@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -8,6 +11,8 @@ from .db import init_db
 from .i18n_middleware import LocaleMiddleware
 from .routes import dashboard, oauth, public, webhooks
 from .settings import settings
+
+STATIC_DIR = Path(__file__).parent / "static"
 
 
 def create_app() -> FastAPI:
@@ -28,6 +33,8 @@ def create_app() -> FastAPI:
     @app.exception_handler(RateLimitExceeded)
     async def rate_limit_handler(request, exc):
         return PlainTextResponse("Rate limit exceeded. Try again later.", status_code=429)
+
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
     app.include_router(public.router)
     app.include_router(oauth.router)
