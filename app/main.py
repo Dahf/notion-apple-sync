@@ -23,7 +23,7 @@ def health() -> dict[str, bool]:
     return {"ok": True}
 
 
-@app.get("/cal/{token}.ics")
+@app.api_route("/cal/{token}.ics", methods=["GET", "HEAD"])
 def calendar_feed(token: str) -> Response:
     cfg = _config.by_token(token)
     if cfg is None:
