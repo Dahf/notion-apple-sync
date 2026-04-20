@@ -3,6 +3,8 @@ services:
     build: .
     container_name: notion-apple-sync
     restart: unless-stopped
+    env_file:
+      - .env
     volumes:
       - ./config:/app/config
     labels:
