@@ -1,40 +1,54 @@
 {% if not info.date_properties %}
-  <p class="text-sm text-red-600">Diese Datenbank hat keine Date-Property. Füge in Notion eine Spalte vom Typ "Date" hinzu.</p>
+  <div class="p-5 rounded-xl bg-rust-50 border-l-2 border-rust-500 text-sm leading-relaxed text-rust-800">
+    <div class="font-serif italic serif-soft mb-1">Keine Datums-Spalte gefunden.</div>
+    Füge in Notion eine Property vom Typ <span class="font-mono text-xs bg-white/60 px-1.5 py-0.5 rounded">Date</span> hinzu
+    und versuche es erneut.
+  </div>
 {% else %}
-  <form method="post" action="/dashboard/calendars" class="space-y-3 bg-slate-50 p-4 rounded border border-slate-200">
+  <form method="post" action="/dashboard/calendars"
+        class="p-6 md:p-7 rounded-2xl bg-cream-100/60 space-y-5" style="border: 1px solid rgba(26,22,19,0.06);">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <input type="hidden" name="connection_id" value="{{ connection.id }}">
     <input type="hidden" name="database_id" value="{{ info.id }}">
 
     <div>
-      <label class="block text-sm font-medium mb-1">Kalender-Name (wie er in Apple erscheint)</label>
-      <input type="text" name="name" value="{{ info.title }}" required
-             class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+      <label for="cal-name" class="block text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
+        Kalender-Name
+      </label>
+      <input id="cal-name" type="text" name="name" value="{{ info.title }}" required>
+      <p class="mt-1.5 text-xs text-ink-400 italic font-serif">So erscheint er in Apple Calendar.</p>
     </div>
 
-    <div>
-      <label class="block text-sm font-medium mb-1">Date-Property</label>
-      <select name="date_property" required
-              class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
-        {% for p in info.date_properties %}
-          <option value="{{ p }}">{{ p }}</option>
-        {% endfor %}
-      </select>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div>
+        <label for="date-prop" class="block text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
+          Datums-Property
+        </label>
+        <select id="date-prop" name="date_property" required>
+          {% for p in info.date_properties %}
+            <option value="{{ p }}">{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="desc-prop" class="block text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
+          Beschreibung <span class="text-ink-300">(optional)</span>
+        </label>
+        <select id="desc-prop" name="description_property">
+          <option value="">— keine —</option>
+          {% for p in info.text_properties %}
+            <option value="{{ p }}">{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
     </div>
 
-    <div>
-      <label class="block text-sm font-medium mb-1">Description-Property (optional)</label>
-      <select name="description_property"
-              class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
-        <option value="">— keine —</option>
-        {% for p in info.text_properties %}
-          <option value="{{ p }}">{{ p }}</option>
-        {% endfor %}
-      </select>
+    <div class="flex items-center gap-4 pt-2">
+      <button type="submit" class="btn-primary">
+        Anlegen
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="text-xs text-ink-400 italic font-serif">Die ICS-URL erscheint direkt danach.</span>
     </div>
-
-    <button type="submit" class="px-4 py-2 rounded bg-slate-900 text-white text-sm font-medium hover:bg-slate-700">
-      Kalender anlegen
-    </button>
   </form>
 {% endif %}

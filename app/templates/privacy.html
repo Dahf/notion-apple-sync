@@ -1,28 +1,70 @@
 {% extends "base.html" %}
 {% block content %}
-<article class="prose max-w-none">
-  <h1 class="text-2xl font-bold mb-4">Datenschutz</h1>
 
-  <h2 class="font-semibold mt-4">Was wir speichern</h2>
-  <ul class="list-disc pl-5 space-y-1 text-sm">
-    <li><strong>Email-Adresse</strong>: für Login via Magic Link.</li>
-    <li><strong>Notion-Workspace-Name und -ID</strong>: zur Anzeige auf dem Dashboard.</li>
-    <li><strong>Notion-Access-Token</strong>: verschlüsselt (Fernet) in der Datenbank. Wird nur zum Abruf deiner Kalender-Daten entschlüsselt.</li>
-    <li><strong>Kalender-Konfiguration</strong>: welche Notion-Database, welche Properties.</li>
-    <li><strong>IP-Adresse</strong>: temporär für Rate-Limits, nicht dauerhaft gespeichert.</li>
-  </ul>
+<article class="max-w-2xl mx-auto pt-12 md:pt-16">
 
-  <h2 class="font-semibold mt-4">Was wir NICHT tun</h2>
-  <ul class="list-disc pl-5 space-y-1 text-sm">
-    <li>Kein Tracking, keine Analytics, keine Werbe-Cookies.</li>
-    <li>Keine Weitergabe an Dritte außer den technischen Dienstleistern (Notion für Daten-Abruf, Resend für Login-Mails).</li>
-    <li>Dein Notion-Token verlässt unseren Server nicht im Klartext.</li>
-  </ul>
+  <div class="reveal reveal-1 text-[0.72rem] tracking-[0.25em] uppercase text-rust-600 font-mono mb-5">
+    — Datenschutz
+  </div>
+  <h1 class="reveal reveal-1 font-serif text-4xl md:text-5xl text-ink-900 tracking-tight-display leading-[1.05] mb-12">
+    Was wir speichern,<br>
+    <span class="italic serif-soft text-rust-600">und was nicht.</span>
+  </h1>
 
-  <h2 class="font-semibold mt-4">Deine Rechte</h2>
-  <p class="text-sm">Du kannst deinen Account jederzeit löschen, indem du alle Notion-Verbindungen trennst und uns eine Mail schreibst. Alle deine Daten werden dann gelöscht.</p>
+  <div class="reveal reveal-2 space-y-10 text-ink-700 leading-[1.75] text-[1.02rem]">
 
-  <h2 class="font-semibold mt-4">Kontakt</h2>
-  <p class="text-sm">Siehe <a href="/imprint" class="underline">Impressum</a>.</p>
+    <section>
+      <h2 class="font-serif text-2xl text-ink-900 serif-tight mb-4">Was wir speichern</h2>
+      <ul class="space-y-3 pl-5">
+        <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-rust-500"></span>
+          <strong class="font-medium">E-Mail-Adresse</strong> — für Login via Magic Link.
+        </li>
+        <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-rust-500"></span>
+          <strong class="font-medium">Notion-Workspace-Name und -ID</strong> — zur Anzeige im Dashboard.
+        </li>
+        <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-rust-500"></span>
+          <strong class="font-medium">Notion-Access-Token</strong> — <span class="italic font-serif">Fernet-verschlüsselt</span>.
+          Wird nur zum Abruf Deiner Kalender-Daten entschlüsselt.
+        </li>
+        <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-rust-500"></span>
+          <strong class="font-medium">Kalender-Konfiguration</strong> — welche Datenbank, welche Properties.
+        </li>
+        <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-rust-500"></span>
+          <strong class="font-medium">IP-Adresse</strong> — temporär für Rate-Limits, nicht dauerhaft.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="font-serif text-2xl text-ink-900 serif-tight mb-4">Was wir <span class="italic">nicht</span> tun</h2>
+      <ul class="space-y-3 pl-5">
+        <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-ink-300"></span>
+          Kein Tracking, keine Analytics, keine Werbe-Cookies.
+        </li>
+        <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-ink-300"></span>
+          Keine Weitergabe an Dritte — ausgenommen die technisch nötigen Dienstleister
+          <span class="italic font-serif">(Notion, Resend)</span>.
+        </li>
+        <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-ink-300"></span>
+          Dein Notion-Token verlässt unseren Server nicht im Klartext.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="font-serif text-2xl text-ink-900 serif-tight mb-4">Deine Rechte</h2>
+      <p>
+        Trenn Deine Notion-Verbindungen im Dashboard und schreib uns — wir löschen alles Übrige.
+      </p>
+    </section>
+
+    <section class="pt-6 hairline">
+      <p class="text-ink-500 text-sm">
+        Für Kontakt siehe <a href="/imprint" class="link-underline text-rust-600">Impressum</a>.
+      </p>
+    </section>
+
+  </div>
 </article>
+
 {% endblock %}

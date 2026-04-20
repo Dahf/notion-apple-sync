@@ -1,31 +1,70 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="text-center max-w-2xl mx-auto">
-  <h1 class="text-4xl font-bold tracking-tight mb-4">Notion → Apple Calendar</h1>
-  <p class="text-lg text-slate-600 mb-8">
-    Verbinde deine Notion-Datenbank mit Apple Calendar (oder jedem ICS-fähigen Client).
-    Einmalig einrichten, automatisch synchron.
-  </p>
-  <a href="/login" class="inline-flex items-center px-6 py-3 rounded-lg bg-slate-900 text-white font-medium hover:bg-slate-700">
-    Loslegen
-  </a>
-</div>
 
-<div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-  <div class="bg-white rounded-lg border border-slate-200 p-5">
-    <div class="text-2xl mb-2">1.</div>
-    <h3 class="font-semibold mb-1">Einloggen</h3>
-    <p class="text-slate-600">Email eingeben, Magic-Link klicken. Kein Passwort.</p>
+<section class="pt-16 md:pt-24 pb-20">
+  <div class="max-w-3xl">
+    <div class="reveal reveal-1 text-[0.78rem] tracking-[0.2em] uppercase text-rust-600 mb-6 font-mono">
+      Ein kleines, sorgfältiges Werkzeug
+    </div>
+
+    <h1 class="reveal reveal-2 font-serif text-5xl md:text-7xl text-ink-900 leading-[0.95] tracking-tight-display mb-8">
+      Dein Notion-Kalender,
+      <span class="italic text-rust-600 serif-soft">wo immer</span>
+      du ihn brauchst.
+    </h1>
+
+    <p class="reveal reveal-3 text-xl md:text-[1.35rem] leading-relaxed text-ink-600 mb-10 max-w-2xl font-light">
+      Verbinde eine Notion-Datenbank, wähle Deine Datums-Spalte — und bekomme eine ICS-Abonnement-URL,
+      die Apple Calendar, Google Calendar und jeder andere Kalender-Client versteht.
+    </p>
+
+    <div class="reveal reveal-4 flex items-center gap-5">
+      <a href="/login" class="btn-primary">
+        Loslegen
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <span class="text-sm text-ink-400 italic font-serif">Kostenlos · kein Passwort</span>
+    </div>
   </div>
-  <div class="bg-white rounded-lg border border-slate-200 p-5">
-    <div class="text-2xl mb-2">2.</div>
-    <h3 class="font-semibold mb-1">Notion verbinden</h3>
-    <p class="text-slate-600">OAuth-Flow, du wählst selbst welche Seiten zugreifbar sind.</p>
+</section>
+
+<section class="pt-8 pb-4">
+  <div class="text-[0.72rem] tracking-[0.25em] uppercase text-ink-400 font-mono mb-10">
+    — Wie es funktioniert
   </div>
-  <div class="bg-white rounded-lg border border-slate-200 p-5">
-    <div class="text-2xl mb-2">3.</div>
-    <h3 class="font-semibold mb-1">Kalender abonnieren</h3>
-    <p class="text-slate-600">ICS-URL kopieren, in Apple Calendar einfügen. Fertig.</p>
+
+  <ol class="grid md:grid-cols-3 gap-px bg-ink-900/[0.06] rounded-3xl overflow-hidden shadow-paper">
+    <li class="bg-white p-8 md:p-10 relative group">
+      <div class="font-serif italic text-5xl text-rust-300 serif-soft mb-5">i.</div>
+      <h3 class="font-serif text-2xl text-ink-900 mb-3 serif-tight">Einloggen</h3>
+      <p class="text-ink-500 leading-relaxed">
+        E-Mail eintragen. Wir schicken Dir einen Link — <span class="italic font-serif">ein Klick genügt</span>.
+        Kein Passwort, nie wieder vergessen.
+      </p>
+    </li>
+    <li class="bg-white p-8 md:p-10 relative group">
+      <div class="font-serif italic text-5xl text-rust-300 serif-soft mb-5">ii.</div>
+      <h3 class="font-serif text-2xl text-ink-900 mb-3 serif-tight">Notion verbinden</h3>
+      <p class="text-ink-500 leading-relaxed">
+        Offizielle OAuth-Verbindung. Du bestimmst, welche Datenbanken wir überhaupt zu sehen bekommen.
+      </p>
+    </li>
+    <li class="bg-white p-8 md:p-10 relative group">
+      <div class="font-serif italic text-5xl text-rust-300 serif-soft mb-5">iii.</div>
+      <h3 class="font-serif text-2xl text-ink-900 mb-3 serif-tight">Abonnieren</h3>
+      <p class="text-ink-500 leading-relaxed">
+        URL kopieren, in Apple Calendar einfügen. <span class="italic font-serif">Fertig.</span>
+        Änderungen in Notion erscheinen automatisch.
+      </p>
+    </li>
+  </ol>
+</section>
+
+<section class="mt-24 max-w-2xl">
+  <div class="font-serif text-2xl text-ink-700 italic leading-relaxed serif-soft">
+    „Kalender verdienen Sorgfalt.&nbsp; Dies ist keine Plattform — es ist ein Stück Handwerk,
+    das eine konkrete Aufgabe elegant löst."
   </div>
-</div>
+</section>
+
 {% endblock %}

@@ -1,14 +1,27 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="max-w-md mx-auto text-center">
-  <div class="text-5xl mb-4">📬</div>
-  <h1 class="text-2xl font-bold mb-2">Check deine Mails</h1>
-  <p class="text-slate-600">
-    Falls <span class="mono">{{ email }}</span> registriert ist oder wir dich anlegen können,
-    haben wir dir gerade einen Login-Link geschickt. Der Link ist 15 Minuten gültig.
+
+<div class="max-w-md mx-auto pt-20 md:pt-28 text-center">
+  <div class="reveal reveal-1 inline-block mb-8">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" class="text-rust-500">
+      <path d="M6 14c0-2.2 1.8-4 4-4h28c2.2 0 4 1.8 4 4v20c0 2.2-1.8 4-4 4H10c-2.2 0-4-1.8-4-4V14z" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M6 16l18 12 18-12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <h1 class="reveal reveal-2 font-serif text-4xl md:text-5xl text-ink-900 tracking-tight-display leading-[1.05] mb-5">
+    Schau in Dein Postfach.
+  </h1>
+
+  <p class="reveal reveal-3 text-ink-500 leading-relaxed mb-8 text-lg">
+    Wenn <span class="font-mono text-sm bg-cream-100 px-2 py-0.5 rounded">{{ email }}</span>
+    registriert ist oder angelegt werden darf, findest Du den Login-Link gleich dort.
   </p>
-  <p class="text-slate-500 text-sm mt-6">
-    Nichts bekommen? Prüfe den Spam-Ordner oder <a href="/login" class="underline">versuch es erneut</a>.
+
+  <p class="reveal reveal-4 text-sm text-ink-400 italic font-serif">
+    Fünfzehn Minuten. Einmalig verwendbar. Nichts gekommen? Auch der Spam-Ordner lohnt einen Blick —
+    oder <a href="/login" class="link-underline text-rust-600 not-italic font-sans">neu versuchen</a>.
   </p>
 </div>
+
 {% endblock %}

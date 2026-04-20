@@ -1,22 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="max-w-md mx-auto">
-  <h1 class="text-2xl font-bold mb-2">Login</h1>
-  <p class="text-slate-600 mb-6">Wir schicken dir einen Login-Link per Email. 15 Minuten gültig.</p>
+
+<div class="max-w-md mx-auto pt-16 md:pt-24">
+  <div class="reveal reveal-1 text-[0.72rem] tracking-[0.25em] uppercase text-rust-600 font-mono mb-6 text-center">
+    — Willkommen zurück
+  </div>
+
+  <h1 class="reveal reveal-2 font-serif text-4xl md:text-5xl text-ink-900 tracking-tight-display leading-[1.05] text-center mb-4">
+    Einloggen
+  </h1>
+
+  <p class="reveal reveal-2 text-ink-500 text-center mb-10 leading-relaxed">
+    Wir schicken Dir einen <span class="font-serif italic">Link</span>. Fünfzehn Minuten gültig.
+  </p>
 
   {% if error %}
-    <div class="mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-800 text-sm">{{ error }}</div>
+    <div class="reveal reveal-3 mb-6 p-4 rounded-xl bg-rust-50 text-rust-700 text-sm leading-relaxed border-l-2 border-rust-500">
+      <span class="font-serif italic">⚠ </span>{{ error }}
+    </div>
   {% endif %}
 
-  <form method="post" action="/auth/request" class="space-y-4">
+  <form method="post" action="/auth/request" class="reveal reveal-3 surface p-8 space-y-5">
     <div>
-      <label class="block text-sm font-medium mb-1" for="email">Email-Adresse</label>
+      <label for="email" class="block text-[0.78rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-3">
+        E-Mail
+      </label>
       <input type="email" id="email" name="email" required autofocus
-             class="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900">
+             placeholder="du@beispiel.de">
     </div>
-    <button type="submit" class="w-full py-2 rounded-md bg-slate-900 text-white font-medium hover:bg-slate-700">
+    <button type="submit" class="btn-primary w-full justify-center">
       Link senden
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12m-4-4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
   </form>
+
+  <p class="reveal reveal-4 text-center mt-8 text-sm text-ink-400 italic font-serif">
+    Neu hier? Auch dann — wir legen dein Konto automatisch an.
+  </p>
 </div>
+
 {% endblock %}

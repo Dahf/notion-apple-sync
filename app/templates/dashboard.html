@@ -1,77 +1,117 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="mb-8">
-  <h1 class="text-2xl font-bold">Dashboard</h1>
-  <p class="text-slate-600 text-sm">Verwalte deine Notion-Verbindungen und Kalender-Feeds.</p>
+
+<div class="reveal reveal-1 mb-12 pt-8">
+  <div class="text-[0.72rem] tracking-[0.25em] uppercase text-rust-600 font-mono mb-4">
+    — Dashboard
+  </div>
+  <h1 class="font-serif text-4xl md:text-5xl text-ink-900 tracking-tight-display leading-[1.05] mb-3">
+    Deine <span class="italic serif-soft">Kalender</span>
+  </h1>
+  <p class="text-ink-500 leading-relaxed text-lg max-w-xl">
+    Verbinde Notion-Workspaces und wähle pro Datenbank, welches Datum exportiert wird.
+  </p>
 </div>
 
 {% if not connections %}
-  <div class="bg-white rounded-lg border border-slate-200 p-8 text-center">
-    <h2 class="text-lg font-semibold mb-2">Verbinde deinen Notion-Workspace</h2>
-    <p class="text-slate-600 mb-5">Du brauchst noch keine Notion-Integration — der OAuth-Flow kümmert sich darum.</p>
-    <a href="/oauth/start" class="inline-flex items-center px-5 py-2.5 rounded-md bg-slate-900 text-white font-medium hover:bg-slate-700">
+
+  <div class="reveal reveal-2 surface-raised p-10 md:p-14 max-w-2xl mx-auto text-center">
+    <div class="text-6xl font-serif italic text-rust-300 serif-soft mb-6">Ø</div>
+    <h2 class="font-serif text-3xl text-ink-900 serif-tight mb-3">
+      Noch keine Verbindung
+    </h2>
+    <p class="text-ink-500 leading-relaxed mb-8 max-w-md mx-auto">
+      Verknüpfe Deinen Notion-Workspace via OAuth. Du entscheidest, welche Seiten wir sehen dürfen.
+    </p>
+    <a href="/oauth/start" class="btn-primary">
       Notion verbinden
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
   </div>
+
 {% else %}
-  {% for conn in connections %}
-    <section class="mb-8 bg-white rounded-lg border border-slate-200">
-      <header class="flex items-center justify-between px-5 py-3 border-b border-slate-100">
-        <div class="flex items-center gap-2">
-          {% if conn.workspace_icon %}<span class="text-lg">{{ conn.workspace_icon }}</span>{% endif %}
-          <span class="font-semibold">{{ conn.workspace_name }}</span>
-        </div>
-        <form method="post" action="/oauth/disconnect/{{ conn.id }}"
-              onsubmit="return confirm('Wirklich trennen? Alle Kalender dieses Workspaces werden gelöscht.');">
-          <button class="text-xs text-red-600 hover:underline">Trennen</button>
-        </form>
-      </header>
 
-      <div class="p-5 space-y-3">
-        {% set cals = calendars_by_conn[conn.id] %}
-        {% if cals %}
-          {% for cal in cals %}
-            <div class="flex items-start justify-between gap-3 p-3 rounded border border-slate-200">
-              <div class="flex-1 min-w-0">
-                <div class="font-medium">{{ cal.name }}</div>
-                <div class="mono text-xs text-slate-500 truncate">
-                  {{ base_url }}/cal/{{ cal.subscription_token }}.ics
-                </div>
-              </div>
-              <button onclick="navigator.clipboard.writeText('{{ base_url }}/cal/{{ cal.subscription_token }}.ics')"
-                      class="shrink-0 px-3 py-1.5 text-xs rounded bg-slate-100 hover:bg-slate-200">
-                Kopieren
-              </button>
-              <form method="post" action="/dashboard/calendars/{{ cal.id }}/delete"
-                    onsubmit="return confirm('Kalender löschen?');">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <button class="shrink-0 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded">×</button>
-              </form>
+  <div class="space-y-8">
+    {% for conn in connections %}
+      <section class="reveal reveal-2 surface overflow-hidden">
+
+        <header class="flex items-center justify-between px-8 py-6 hairline" style="border-top:0; border-bottom: 1px solid rgba(26,22,19,0.06);">
+          <div class="flex items-baseline gap-3">
+            {% if conn.workspace_icon %}
+              <span class="text-xl">{{ conn.workspace_icon }}</span>
+            {% else %}
+              <span class="font-serif italic text-rust-400 text-xl serif-soft">◇</span>
+            {% endif %}
+            <div>
+              <div class="font-serif text-xl text-ink-900 serif-tight">{{ conn.workspace_name }}</div>
+              <div class="text-xs text-ink-400 font-mono mt-0.5">Notion Workspace</div>
             </div>
-          {% endfor %}
-        {% else %}
-          <p class="text-sm text-slate-500">Noch keine Kalender. Füge unten einen hinzu.</p>
-        {% endif %}
-
-        <details class="mt-4 border-t border-slate-100 pt-4">
-          <summary class="cursor-pointer text-sm font-medium text-slate-700 hover:text-slate-900">
-            + Kalender hinzufügen
-          </summary>
-          <div class="mt-4"
-               hx-get="/dashboard/connections/{{ conn.id }}/databases"
-               hx-trigger="toggle from:closest details"
-               hx-swap="innerHTML">
-            <p class="text-xs text-slate-500">Lade Notion-Datenbanken…</p>
           </div>
-        </details>
-      </div>
-    </section>
-  {% endfor %}
+          <form method="post" action="/oauth/disconnect/{{ conn.id }}"
+                onsubmit="return confirm('Workspace trennen? Alle zugehörigen Kalender werden entfernt.');">
+            <button class="text-xs text-ink-400 hover:text-rust-600 transition-colors">
+              trennen
+            </button>
+          </form>
+        </header>
 
-  <div class="text-center mt-6">
-    <a href="/oauth/start" class="text-sm text-slate-600 hover:text-slate-900 underline">
-      Weiteren Workspace verbinden
-    </a>
+        <div class="px-8 py-6">
+          {% set cals = calendars_by_conn[conn.id] %}
+          {% if cals %}
+            <div class="space-y-3">
+              {% for cal in cals %}
+                <div class="group flex items-start gap-4 p-4 rounded-xl hover:bg-cream-50 transition-colors">
+                  <div class="pt-1 text-rust-500 font-serif italic text-lg serif-soft shrink-0">›</div>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-serif text-lg text-ink-900 serif-tight leading-tight">{{ cal.name }}</div>
+                    <div class="mt-1.5 font-mono text-xs text-ink-500 truncate select-all">
+                      {{ base_url }}/cal/{{ cal.subscription_token }}.ics
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button type="button"
+                            onclick="navigator.clipboard.writeText('{{ base_url }}/cal/{{ cal.subscription_token }}.ics'); this.innerText='kopiert ✓'; setTimeout(()=>this.innerText='kopieren', 1600);"
+                            class="text-xs px-3 py-1.5 rounded-full border border-ink-900/10 text-ink-700 hover:border-rust-500 hover:text-rust-600 transition-all font-medium">
+                      kopieren
+                    </button>
+                    <form method="post" action="/dashboard/calendars/{{ cal.id }}/delete" class="inline"
+                          onsubmit="return confirm('Diesen Kalender wirklich löschen?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <button class="text-xs w-7 h-7 rounded-full text-ink-400 hover:text-rust-600 hover:bg-rust-50 transition-colors" title="Löschen">×</button>
+                    </form>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-sm text-ink-400 italic font-serif py-2">
+              Noch keine Kalender aus diesem Workspace. Füge unten einen hinzu.
+            </p>
+          {% endif %}
+
+          <details class="mt-6 pt-5" style="border-top: 1px solid rgba(26,22,19,0.06);">
+            <summary class="cursor-pointer list-none flex items-center gap-2 text-rust-600 font-medium hover:text-rust-700 transition-colors">
+              <span class="font-serif italic text-xl serif-soft">+</span>
+              <span>Kalender hinzufügen</span>
+            </summary>
+            <div class="mt-6"
+                 hx-get="/dashboard/connections/{{ conn.id }}/databases"
+                 hx-trigger="toggle from:closest details"
+                 hx-swap="innerHTML">
+              <p class="text-sm text-ink-400 italic font-serif">Lade Datenbanken aus Notion …</p>
+            </div>
+          </details>
+        </div>
+      </section>
+    {% endfor %}
+
+    <div class="text-center pt-4">
+      <a href="/oauth/start" class="text-sm text-ink-500 italic font-serif link-underline hover:text-rust-600">
+        Weiteren Workspace verbinden
+      </a>
+    </div>
   </div>
+
 {% endif %}
+
 {% endblock %}
