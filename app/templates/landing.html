@@ -67,8 +67,18 @@
   </div>
 </section>
 
-<section class="mt-28 md:mt-36 mb-8">
-  <div class="grid md:grid-cols-[1fr_1.15fr] gap-12 md:gap-16 items-center">
+<section class="mt-28 md:mt-36 mb-8 relative">
+
+  {# Decorative tiled cells — bleeds behind the calendar preview, fades via mask #}
+  <div aria-hidden="true"
+       class="absolute inset-y-0 right-0 w-[75%] pointer-events-none z-0"
+       style="mask-image: linear-gradient(to left, black 30%, transparent 95%); -webkit-mask-image: linear-gradient(to left, black 30%, transparent 95%);">
+    <div class="cell-tiles h-full" style="--cols: 8; padding: 20px;">
+      {% for _ in range(56) %}<span></span>{% endfor %}
+    </div>
+  </div>
+
+  <div class="relative z-10 grid md:grid-cols-[1fr_1.15fr] gap-12 md:gap-16 items-center">
 
     <div>
       <h2 class="font-serif text-4xl md:text-5xl text-ink-900 leading-[1.05] tracking-tight-display mb-6">
@@ -82,7 +92,6 @@
 
     {# Calendar preview — static mockup, April 2026 #}
     <div class="relative">
-      {# Stacked shadow cards for depth #}
       <div aria-hidden="true" class="absolute -top-3 right-4 w-[92%] h-10 rounded-[18px] bg-cream-100 shadow-paper"></div>
       <div aria-hidden="true" class="absolute -top-1.5 right-2 w-[96%] h-10 rounded-[18px] bg-cream-50 shadow-paper"></div>
 
@@ -91,15 +100,12 @@
           April 2026
         </div>
         <div class="grid grid-cols-7 gap-1.5 text-center">
-          {# Weekday headers #}
           {% for wd in ['Mo','Di','Mi','Do','Fr','Sa','So'] %}
             <div class="font-mono text-[0.62rem] tracking-[0.2em] uppercase text-ink-400 pb-2">{{ wd }}</div>
           {% endfor %}
 
-          {# Padding for April 1 (Wednesday) — Mo, Di, Mi empty #}
           <div></div><div></div><div></div>
 
-          {# Day cells — highlighted days show "events" #}
           {%- set events = [5, 8, 12, 15, 19, 22, 27] -%}
           {%- set primary = [27] -%}
           {% for d in range(1, 31) %}
