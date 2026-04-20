@@ -10,17 +10,17 @@
   </div>
 
   <h1 class="reveal reveal-2 font-serif text-4xl md:text-5xl text-ink-900 tracking-tight-display leading-[1.05] mb-5">
-    Schau in Dein Postfach.
+    {{ _('login_sent.title') }}
   </h1>
 
   <p class="reveal reveal-3 text-ink-500 leading-relaxed mb-8 text-lg">
-    Wenn <span class="font-mono text-sm bg-cream-100 px-2 py-0.5 rounded">{{ email }}</span>
-    registriert ist oder angelegt werden darf, findest Du den Login-Link gleich dort.
+    {{ _('login_sent.body_1') }} <span class="font-mono text-sm bg-cream-100 px-2 py-0.5 rounded">{{ email }}</span>
+    {{ _('login_sent.body_2') }}
   </p>
 
   <p class="reveal reveal-4 text-sm text-ink-400 italic font-serif">
-    Fünfzehn Minuten. Einmalig verwendbar. Nichts gekommen? Auch der Spam-Ordner lohnt einen Blick —
-    oder <a href="/login" class="link-underline text-rust-600 not-italic font-sans">neu versuchen</a>.
+    {{ _('login_sent.footer') }}
+    <a href="/login" class="link-underline text-rust-600 not-italic font-sans">{{ _('login_sent.retry') }}</a>.
   </p>
 </div>
 

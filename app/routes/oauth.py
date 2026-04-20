@@ -50,7 +50,7 @@ def oauth_callback(
     )
     db.add(conn)
     db.commit()
-    flash(request, f"Workspace „{conn.workspace_name}“ verbunden.", kind="success")
+    flash(request, "flash.ws_connected", kind="success", name=conn.workspace_name)
     return RedirectResponse("/dashboard", status_code=303)
 
 
@@ -70,5 +70,5 @@ def oauth_disconnect(
     ws_name = conn.workspace_name
     db.delete(conn)
     db.commit()
-    flash(request, f"Workspace „{ws_name}“ getrennt.", kind="info")
+    flash(request, "flash.ws_disconnected", kind="info", name=ws_name)
     return RedirectResponse("/dashboard", status_code=303)

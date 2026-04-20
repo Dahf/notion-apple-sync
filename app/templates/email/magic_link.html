@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="de">
+<html lang="{{ locale }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dein Login-Link</title>
+  <title>{{ _('email.subject') }}</title>
 </head>
 <body style="margin:0; padding:0; background-color:#faf9f5; font-family:Georgia,'IBM Plex Sans',system-ui,serif; color:#1a1613;">
 
@@ -26,18 +26,18 @@
           <tr>
             <td style="padding:44px 44px 8px 44px;">
               <div style="font-family:'Courier New',monospace; font-size:11px; letter-spacing:2.5px; text-transform:uppercase; color:#bd5d3a;">
-                — Willkommen zurück
+                {{ _('email.kicker') }}
               </div>
               <h1 style="margin:14px 0 0 0; font-family:Georgia,serif; font-size:34px; line-height:1.05; letter-spacing:-0.02em; color:#1a1613; font-weight:normal;">
-                Dein <em style="font-style:italic;">Login-Link</em>
+                {{ _('email.title_1') }} <em style="font-style:italic;">{{ _('email.title_em') }}</em>
               </h1>
             </td>
           </tr>
 
           <tr>
             <td style="padding:20px 44px 0 44px; font-family:Georgia,'IBM Plex Sans',system-ui,serif; font-size:16px; line-height:1.7; color:#524940;">
-              Ein Klick genügt. Der Link ist <strong style="color:#1a1613; font-weight:600;">fünfzehn Minuten</strong> gültig
-              und kann nur <strong style="color:#1a1613; font-weight:600;">einmal</strong> verwendet werden.
+              {{ _('email.body_1') }} <strong style="color:#1a1613; font-weight:600;">{{ _('email.body_15min') }}</strong>
+              {{ _('email.body_2') }} <strong style="color:#1a1613; font-weight:600;">{{ _('email.body_once') }}</strong> {{ _('email.body_3') }}
             </td>
           </tr>
 
@@ -45,14 +45,14 @@
             <td align="left" style="padding:28px 44px 0 44px;">
               <a href="{{ link }}"
                  style="display:inline-block; background-color:#bd5d3a; color:#faf9f5; text-decoration:none; font-family:'IBM Plex Sans',system-ui,sans-serif; font-weight:500; font-size:15px; padding:14px 28px; border-radius:999px; letter-spacing:-0.01em;">
-                Jetzt einloggen&nbsp;&nbsp;→
+                {{ _('email.cta') }}&nbsp;&nbsp;→
               </a>
             </td>
           </tr>
 
           <tr>
             <td style="padding:32px 44px 0 44px; font-family:'IBM Plex Sans',system-ui,sans-serif; font-size:12px; line-height:1.5; color:#8a8178; letter-spacing:1px; text-transform:uppercase;">
-              — Oder URL kopieren
+              {{ _('email.or_copy') }}
             </td>
           </tr>
           <tr>
@@ -63,8 +63,7 @@
 
           <tr>
             <td style="padding:20px 44px 28px 44px; background-color:#faf9f5; border-bottom-left-radius:20px; border-bottom-right-radius:20px; font-family:Georgia,serif; font-style:italic; font-size:14px; line-height:1.6; color:#6b635a;">
-              Du hast diesen Login nicht angefordert? Dann ignoriere diese Nachricht —
-              ohne Klick passiert nichts.
+              {{ _('email.unrequested') }}
             </td>
           </tr>
 
@@ -76,9 +75,9 @@
             <td align="center" style="padding:28px 8px 16px 8px; font-family:'IBM Plex Sans',system-ui,sans-serif; font-size:11px; color:#aea59a; letter-spacing:0.5px;">
               <a href="{{ base_url }}" style="color:#aea59a; text-decoration:none;">{{ base_url|replace('https://', '')|replace('http://', '') }}</a>
               &nbsp;·&nbsp;
-              <a href="{{ base_url }}/imprint" style="color:#aea59a; text-decoration:none;">Impressum</a>
+              <a href="{{ base_url }}/imprint" style="color:#aea59a; text-decoration:none;">{{ _('footer.imprint') }}</a>
               &nbsp;·&nbsp;
-              <a href="{{ base_url }}/privacy" style="color:#aea59a; text-decoration:none;">Datenschutz</a>
+              <a href="{{ base_url }}/privacy" style="color:#aea59a; text-decoration:none;">{{ _('footer.privacy') }}</a>
             </td>
           </tr>
         </table>

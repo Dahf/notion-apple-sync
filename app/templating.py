@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 from .auth import ensure_csrf
 from .db import SessionLocal
 from .flash import pop_flash
+from .i18n import SUPPORTED, get_locale, make_translator
 from .models import User
 from .settings import settings
 
@@ -21,16 +22,23 @@ def render(request: Request, name: str, **context) -> "templates.TemplateRespons
             with SessionLocal() as db:
                 user = db.query(User).filter(User.id == uid).one_or_none()
 
+    locale = get_locale(request)
+    _ = make_translator(locale)
+
     ctx = {
         "base_url": settings.base_url,
         "csrf_token": ensure_csrf(request),
         "user": user,
-        "flash_messages": pop_flash(request),
+        "flash_messages": pop_flash(request, locale),
         "imprint": {
             "name": settings.imprint_name,
             "address": settings.imprint_address,
             "email": settings.imprint_email,
         },
+        "locale": locale,
+        "supported_locales": SUPPORTED,
+        "_": _,
+        "t": _,
         **context,
     }
     return templates.TemplateResponse(request, name, ctx)

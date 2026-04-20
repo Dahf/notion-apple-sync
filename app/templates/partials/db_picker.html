@@ -1,12 +1,12 @@
 {% if not databases %}
   <div class="p-5 rounded-xl bg-rust-50 border-l-2 border-rust-500 text-sm leading-relaxed text-rust-800">
-    <div class="font-serif italic serif-soft mb-1">Keine Datenbanken gefunden.</div>
-    Hast Du im OAuth-Dialog auch eine Datenbank freigegeben?
-    <a href="/oauth/start" class="link-underline text-rust-700 font-medium">Nochmal verbinden</a>.
+    <div class="font-serif italic serif-soft mb-1">{{ _('picker.no_databases_title') }}</div>
+    {{ _('picker.no_databases_body') }}
+    <a href="/oauth/start" class="link-underline text-rust-700 font-medium">{{ _('picker.reconnect') }}</a>.
   </div>
 {% else %}
   <div class="text-[0.72rem] tracking-[0.2em] uppercase text-ink-500 font-mono mb-4">
-    — Wähle eine Datenbank
+    {{ _('picker.choose_database') }}
   </div>
   <div class="grid gap-2">
     {% for db in databases %}
@@ -18,7 +18,7 @@
         <div class="flex items-baseline justify-between gap-4">
           <div class="font-serif text-lg text-ink-900 serif-tight">{{ db.title }}</div>
           <div class="text-xs text-ink-400 font-mono shrink-0">
-            {{ db.date_properties|length }} date {% if db.date_properties|length == 1 %}column{% else %}columns{% endif %}
+            {{ db.date_properties|length }} {% if db.date_properties|length == 1 %}{{ _('picker.date_column_one') }}{% else %}{{ _('picker.date_column_many') }}{% endif %}
           </div>
         </div>
       </button>

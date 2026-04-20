@@ -3,13 +3,13 @@
 
 <div class="reveal reveal-1 mb-12 pt-8">
   <div class="text-[0.72rem] tracking-[0.25em] uppercase text-rust-600 font-mono mb-4">
-    — Dashboard
+    {{ _('dashboard.kicker') }}
   </div>
   <h1 class="font-serif text-4xl md:text-5xl text-ink-900 tracking-tight-display leading-[1.05] mb-3">
-    Deine <span class="italic serif-soft">Kalender</span>
+    {{ _('dashboard.title_1') }} <span class="italic serif-soft">{{ _('dashboard.title_em') }}</span>
   </h1>
   <p class="text-ink-500 leading-relaxed text-lg max-w-xl">
-    Verbinde Notion-Workspaces und wähle pro Datenbank, welches Datum exportiert wird.
+    {{ _('dashboard.lead') }}
   </p>
 </div>
 
@@ -18,13 +18,13 @@
   <div class="reveal reveal-2 surface-raised p-10 md:p-14 max-w-2xl mx-auto text-center">
     <div class="text-6xl font-serif italic text-rust-300 serif-soft mb-6">Ø</div>
     <h2 class="font-serif text-3xl text-ink-900 serif-tight mb-3">
-      Noch keine Verbindung
+      {{ _('dashboard.empty_title') }}
     </h2>
     <p class="text-ink-500 leading-relaxed mb-8 max-w-md mx-auto">
-      Verknüpfe Deinen Notion-Workspace via OAuth. Du entscheidest, welche Seiten wir sehen dürfen.
+      {{ _('dashboard.empty_body') }}
     </p>
     <a href="/oauth/start" class="btn-primary">
-      Notion verbinden
+      {{ _('dashboard.connect_notion') }}
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
   </div>
@@ -44,15 +44,15 @@
             {% endif %}
             <div>
               <div class="font-serif text-xl text-ink-900 serif-tight">{{ conn.workspace_name }}</div>
-              <div class="text-xs text-ink-400 font-mono mt-0.5">Notion Workspace</div>
+              <div class="text-xs text-ink-400 font-mono mt-0.5">{{ _('dashboard.workspace_label') }}</div>
             </div>
           </div>
           <form method="post" action="/oauth/disconnect/{{ conn.id }}"
-                data-confirm="Wenn Du diesen Workspace trennst, werden alle zugehörigen Kalender-Feeds sofort ungültig. Sicher?"
-                data-confirm-title="Workspace trennen"
-                data-confirm-label="Ja, trennen">
+                data-confirm="{{ _('dashboard.disconnect_confirm') }}"
+                data-confirm-title="{{ _('dashboard.disconnect_title') }}"
+                data-confirm-label="{{ _('dashboard.disconnect_label') }}">
             <button class="text-xs text-ink-400 hover:text-rust-600 transition-colors">
-              trennen
+              {{ _('dashboard.disconnect') }}
             </button>
           </form>
         </header>
@@ -72,13 +72,16 @@
                   </a>
                   <div class="flex items-center gap-2 shrink-0">
                     <button type="button"
-                            onclick="event.stopPropagation(); navigator.clipboard.writeText('{{ base_url }}/cal/{{ cal.subscription_token }}.ics'); this.innerText='kopiert ✓'; setTimeout(()=>this.innerText='kopieren', 1600);"
+                            data-copy-url="{{ base_url }}/cal/{{ cal.subscription_token }}.ics"
+                            data-label-copy="{{ _('dashboard.copy') }}"
+                            data-label-copied="{{ _('dashboard.copied') }}"
+                            onclick="navigator.clipboard.writeText(this.dataset.copyUrl); this.innerText=this.dataset.labelCopied; setTimeout(()=>this.innerText=this.dataset.labelCopy, 1600);"
                             class="text-xs px-3 py-1.5 rounded-full border border-ink-900/10 text-ink-700 hover:border-rust-500 hover:text-rust-600 transition-all font-medium">
-                      kopieren
+                      {{ _('dashboard.copy') }}
                     </button>
                     <a href="/dashboard/calendars/{{ cal.id }}/edit"
                        class="text-xs px-3 py-1.5 rounded-full border border-ink-900/10 text-ink-700 hover:border-rust-500 hover:text-rust-600 transition-all font-medium">
-                      bearbeiten
+                      {{ _('dashboard.edit') }}
                     </a>
                   </div>
                 </div>
@@ -86,20 +89,20 @@
             </div>
           {% else %}
             <p class="text-sm text-ink-400 italic font-serif py-2">
-              Noch keine Kalender aus diesem Workspace. Füge unten einen hinzu.
+              {{ _('dashboard.no_calendars') }}
             </p>
           {% endif %}
 
           <details class="mt-6 pt-5" style="border-top: 1px solid rgba(26,22,19,0.06);">
             <summary class="cursor-pointer list-none flex items-center gap-2 text-rust-600 font-medium hover:text-rust-700 transition-colors">
               <span class="font-serif italic text-xl serif-soft">+</span>
-              <span>Kalender hinzufügen</span>
+              <span>{{ _('dashboard.add_calendar') }}</span>
             </summary>
             <div class="mt-6"
                  hx-get="/dashboard/connections/{{ conn.id }}/databases"
                  hx-trigger="toggle from:closest details"
                  hx-swap="innerHTML">
-              <p class="text-sm text-ink-400 italic font-serif">Lade Datenbanken aus Notion …</p>
+              <p class="text-sm text-ink-400 italic font-serif">{{ _('dashboard.loading_databases') }}</p>
             </div>
           </details>
         </div>
@@ -108,7 +111,7 @@
 
     <div class="text-center pt-4">
       <a href="/oauth/start" class="text-sm text-ink-500 italic font-serif link-underline hover:text-rust-600">
-        Weiteren Workspace verbinden
+        {{ _('dashboard.connect_another') }}
       </a>
     </div>
   </div>

@@ -4,63 +4,62 @@
 <article class="max-w-2xl mx-auto pt-12 md:pt-16">
 
   <div class="reveal reveal-1 text-[0.72rem] tracking-[0.25em] uppercase text-rust-600 font-mono mb-5">
-    — Datenschutz
+    {{ _('privacy.kicker') }}
   </div>
   <h1 class="reveal reveal-1 font-serif text-4xl md:text-5xl text-ink-900 tracking-tight-display leading-[1.05] mb-12">
-    Was wir speichern,<br>
-    <span class="italic serif-soft text-rust-600">und was nicht.</span>
+    {{ _('privacy.title_1') }}<br>
+    <span class="italic serif-soft text-rust-600">{{ _('privacy.title_em') }}</span>
   </h1>
 
   <div class="reveal reveal-2 space-y-10 text-ink-700 leading-[1.75] text-[1.02rem]">
 
     <section>
-      <h2 class="font-serif text-2xl text-ink-900 serif-tight mb-4">Was wir speichern</h2>
+      <h2 class="font-serif text-2xl text-ink-900 serif-tight mb-4">{{ _('privacy.store_title') }}</h2>
       <ul class="space-y-3 pl-5">
         <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-rust-500"></span>
-          <strong class="font-medium">E-Mail-Adresse</strong> — für Login via Magic Link.
+          <strong class="font-medium">{{ _('privacy.store_email') }}</strong> {{ _('privacy.store_email_body') }}
         </li>
         <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-rust-500"></span>
-          <strong class="font-medium">Notion-Workspace-Name und -ID</strong> — zur Anzeige im Dashboard.
+          <strong class="font-medium">{{ _('privacy.store_ws') }}</strong> {{ _('privacy.store_ws_body') }}
         </li>
         <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-rust-500"></span>
-          <strong class="font-medium">Notion-Access-Token</strong> — <span class="italic font-serif">Fernet-verschlüsselt</span>.
-          Wird nur zum Abruf Deiner Kalender-Daten entschlüsselt.
+          <strong class="font-medium">{{ _('privacy.store_token') }}</strong> — <span class="italic font-serif">{{ _('privacy.store_token_enc') }}</span>{{ _('privacy.store_token_body') }}
         </li>
         <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-rust-500"></span>
-          <strong class="font-medium">Kalender-Konfiguration</strong> — welche Datenbank, welche Properties.
+          <strong class="font-medium">{{ _('privacy.store_cfg') }}</strong> {{ _('privacy.store_cfg_body') }}
         </li>
         <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-rust-500"></span>
-          <strong class="font-medium">IP-Adresse</strong> — temporär für Rate-Limits, nicht dauerhaft.
+          <strong class="font-medium">{{ _('privacy.store_ip') }}</strong> {{ _('privacy.store_ip_body') }}
         </li>
       </ul>
     </section>
 
     <section>
-      <h2 class="font-serif text-2xl text-ink-900 serif-tight mb-4">Was wir <span class="italic">nicht</span> tun</h2>
+      <h2 class="font-serif text-2xl text-ink-900 serif-tight mb-4">{{ _('privacy.not_title_1') }} <span class="italic">{{ _('privacy.not_title_em') }}</span> {{ _('privacy.not_title_2') }}</h2>
       <ul class="space-y-3 pl-5">
         <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-ink-300"></span>
-          Kein Tracking, keine Analytics, keine Werbe-Cookies.
+          {{ _('privacy.not_tracking') }}
         </li>
         <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-ink-300"></span>
-          Keine Weitergabe an Dritte — ausgenommen die technisch nötigen Dienstleister
-          <span class="italic font-serif">(Notion, Resend)</span>.
+          {{ _('privacy.not_third_1') }}
+          <span class="italic font-serif">{{ _('privacy.not_third_em') }}</span>{{ _('privacy.not_third_2') }}
         </li>
         <li class="relative pl-2"><span class="absolute -left-2 top-[0.55em] w-1 h-1 rounded-full bg-ink-300"></span>
-          Dein Notion-Token verlässt unseren Server nicht im Klartext.
+          {{ _('privacy.not_plain') }}
         </li>
       </ul>
     </section>
 
     <section>
-      <h2 class="font-serif text-2xl text-ink-900 serif-tight mb-4">Deine Rechte</h2>
+      <h2 class="font-serif text-2xl text-ink-900 serif-tight mb-4">{{ _('privacy.rights_title') }}</h2>
       <p>
-        Trenn Deine Notion-Verbindungen im Dashboard und schreib uns — wir löschen alles Übrige.
+        {{ _('privacy.rights_body') }}
       </p>
     </section>
 
     <section class="pt-6 hairline">
       <p class="text-ink-500 text-sm">
-        Für Kontakt siehe <a href="/imprint" class="link-underline text-rust-600">Impressum</a>.
+        {{ _('privacy.contact_1') }} <a href="/imprint" class="link-underline text-rust-600">{{ _('privacy.contact_link') }}</a>{{ _('privacy.contact_2') }}
       </p>
     </section>
 

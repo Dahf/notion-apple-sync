@@ -1,16 +1,26 @@
 from fastapi import Request
 
+from .i18n import translate
 
-def flash(request: Request, message: str, kind: str = "info") -> None:
-    """Add a flash message (shown as toast on next render)."""
+
+def flash(request: Request, key: str, kind: str = "info", **params) -> None:
+    """Queue a flash message (translated on next render)."""
     if not hasattr(request, "session"):
         return
     msgs = request.session.get("flash", [])
-    msgs.append({"kind": kind, "message": message})
+    msgs.append({"kind": kind, "key": key, "params": params})
     request.session["flash"] = msgs
 
 
-def pop_flash(request: Request) -> list[dict]:
+def pop_flash(request: Request, locale: str) -> list[dict]:
     if not hasattr(request, "session"):
         return []
-    return request.session.pop("flash", []) or []
+    raw = request.session.pop("flash", []) or []
+    out: list[dict] = []
+    for m in raw:
+        if "key" in m:
+            message = translate(m["key"], locale, **(m.get("params") or {}))
+        else:
+            message = m.get("message", "")
+        out.append({"kind": m.get("kind", "info"), "message": message})
+    return out

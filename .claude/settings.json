@@ -6,7 +6,11 @@
       "Bash(.venv/Scripts/python.exe -m pytest tests/ -v)",
       "Bash(rm -f test_app.db)",
       "Bash(.venv/Scripts/python.exe -m pytest tests/)",
-      "WebFetch(domain:resend.com)"
+      "WebFetch(domain:resend.com)",
+      "Bash(python -c \"from app.main import app; print\\('ok'\\)\")",
+      "Bash(python -c \"from app.i18n import translate, get_locale, TRANSLATIONS; print\\(translate\\('flash.welcome', 'en', email='foo@bar.com'\\)\\); print\\(translate\\('flash.welcome', 'de', email='foo@bar.com'\\)\\); print\\(len\\(TRANSLATIONS['de']\\), 'de keys'\\); print\\(len\\(TRANSLATIONS['en']\\), 'en keys'\\); missing = set\\(TRANSLATIONS['de']\\) - set\\(TRANSLATIONS['en']\\); print\\('missing in en:', missing\\); extra = set\\(TRANSLATIONS['en']\\) - set\\(TRANSLATIONS['de']\\); print\\('extra in en:', extra\\)\")",
+      "Bash(python -m pytest tests/ -x -q)",
+      "Bash(python -c ' *)"
     ]
   }
 }

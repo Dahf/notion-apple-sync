@@ -1,8 +1,7 @@
 {% if not info.date_properties %}
   <div class="p-5 rounded-xl bg-rust-50 border-l-2 border-rust-500 text-sm leading-relaxed text-rust-800">
-    <div class="font-serif italic serif-soft mb-1">Keine Datums-Spalte gefunden.</div>
-    Füge in Notion eine Property vom Typ <span class="font-mono text-xs bg-white/60 px-1.5 py-0.5 rounded">Date</span> hinzu
-    und versuche es erneut.
+    <div class="font-serif italic serif-soft mb-1">{{ _('picker.no_date_title') }}</div>
+    {{ _('picker.no_date_body_1') }} <span class="font-mono text-xs bg-white/60 px-1.5 py-0.5 rounded">Date</span> {{ _('picker.no_date_body_2') }}
   </div>
 {% else %}
   <form method="post" action="/dashboard/calendars"
@@ -13,16 +12,16 @@
 
     <div>
       <label for="cal-name" class="block text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
-        Kalender-Name
+        {{ _('edit_cal.name_label') }}
       </label>
       <input id="cal-name" type="text" name="name" value="{{ info.title }}" required>
-      <p class="mt-1.5 text-xs text-ink-400 italic font-serif">So erscheint er in Apple Calendar.</p>
+      <p class="mt-1.5 text-xs text-ink-400 italic font-serif">{{ _('edit_cal.name_hint') }}</p>
     </div>
 
     <div class="grid md:grid-cols-2 gap-4">
       <div>
         <label for="date-prop" class="block text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
-          Datums-Property
+          {{ _('edit_cal.date_prop') }}
         </label>
         <select id="date-prop" name="date_property" required>
           {% for p in info.date_properties %}
@@ -32,10 +31,10 @@
       </div>
       <div>
         <label for="desc-prop" class="block text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
-          Beschreibung <span class="text-ink-300">(optional)</span>
+          {{ _('edit_cal.desc_prop') }} <span class="text-ink-300">{{ _('edit_cal.optional') }}</span>
         </label>
         <select id="desc-prop" name="description_property">
-          <option value="">— keine —</option>
+          <option value="">{{ _('edit_cal.no_desc') }}</option>
           {% for p in info.text_properties %}
             <option value="{{ p }}">{{ p }}</option>
           {% endfor %}
@@ -45,10 +44,10 @@
 
     <div class="flex items-center gap-4 pt-2">
       <button type="submit" class="btn-primary">
-        Anlegen
+        {{ _('picker.create') }}
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <span class="text-xs text-ink-400 italic font-serif">Die ICS-URL erscheint direkt danach.</span>
+      <span class="text-xs text-ink-400 italic font-serif">{{ _('picker.create_hint') }}</span>
     </div>
   </form>
 {% endif %}

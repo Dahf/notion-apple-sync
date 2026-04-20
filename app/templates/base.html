@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="{{ locale }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -301,13 +301,25 @@
       <nav class="flex items-center gap-1 text-[0.92rem]">
         {% if user %}
           <span class="hidden sm:inline text-ink-400 mr-3 font-mono text-xs">{{ user.email }}</span>
-          <a href="/dashboard" class="btn-ghost">Dashboard</a>
+          <a href="/dashboard" class="btn-ghost">{{ _('nav.dashboard') }}</a>
           <form method="post" action="/auth/logout" class="inline">
-            <button class="btn-ghost text-ink-500">Logout</button>
+            <button class="btn-ghost text-ink-500">{{ _('nav.logout') }}</button>
           </form>
         {% else %}
-          <a href="/login" class="btn-ghost">Einloggen</a>
+          <a href="/login" class="btn-ghost">{{ _('nav.login') }}</a>
         {% endif %}
+        <span class="mx-2 text-ink-300" aria-hidden="true">·</span>
+        <span class="flex items-center gap-1 text-xs font-mono text-ink-400" aria-label="{{ _('nav.lang_label') }}">
+          {% for code in supported_locales %}
+            {% if code == locale %}
+              <span class="px-1.5 py-0.5 rounded text-ink-900 font-medium uppercase">{{ code }}</span>
+            {% else %}
+              <form method="post" action="/lang/{{ code }}" class="inline">
+                <button type="submit" class="px-1.5 py-0.5 rounded hover:text-rust-600 uppercase">{{ code }}</button>
+              </form>
+            {% endif %}
+          {% endfor %}
+        </span>
       </nav>
     </div>
   </header>
@@ -323,17 +335,17 @@
   <dialog id="confirm-modal" class="modal" aria-labelledby="confirm-title">
     <div class="modal-card">
       <div class="text-[0.72rem] tracking-[0.25em] uppercase text-rust-600 font-mono mb-3">
-        — Bitte bestätigen
+        {{ _('modal.confirm_kicker') }}
       </div>
       <h2 id="confirm-title" class="font-serif text-3xl text-ink-900 serif-tight leading-[1.1] mb-3">
-        Sicher?
+        {{ _('modal.confirm_title') }}
       </h2>
       <p id="confirm-message" class="text-ink-500 leading-relaxed mb-8">
-        Aktion wirklich ausführen?
+        {{ _('modal.confirm_body') }}
       </p>
       <div class="flex items-center justify-end gap-2">
-        <button type="button" class="btn-subtle" data-modal-cancel>Abbrechen</button>
-        <button type="button" class="btn-danger" id="confirm-ok">Bestätigen</button>
+        <button type="button" class="btn-subtle" data-modal-cancel>{{ _('modal.cancel') }}</button>
+        <button type="button" class="btn-danger" id="confirm-ok">{{ _('modal.confirm') }}</button>
       </div>
     </div>
   </dialog>
@@ -371,7 +383,7 @@
 
         const close = document.createElement('button');
         close.className = 'toast-close';
-        close.setAttribute('aria-label', 'Schließen');
+        close.setAttribute('aria-label', {{ _('toast.close')|tojson }});
         close.textContent = '×';
 
         el.appendChild(dot);
@@ -453,11 +465,11 @@
   <footer class="max-w-5xl mx-auto px-6 md:px-8 py-10">
     <div class="hairline pt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-ink-500">
       <div class="font-serif italic serif-soft">
-        Made with care · <span class="not-italic font-sans">{{ base_url|replace('https://', '')|replace('http://', '') }}</span>
+        {{ _('footer.made_with_care') }} · <span class="not-italic font-sans">{{ base_url|replace('https://', '')|replace('http://', '') }}</span>
       </div>
       <div class="flex items-center gap-6">
-        <a href="/imprint" class="link-underline hover:text-ink-900">Impressum</a>
-        <a href="/privacy" class="link-underline hover:text-ink-900">Datenschutz</a>
+        <a href="/imprint" class="link-underline hover:text-ink-900">{{ _('footer.imprint') }}</a>
+        <a href="/privacy" class="link-underline hover:text-ink-900">{{ _('footer.privacy') }}</a>
       </div>
     </div>
   </footer>

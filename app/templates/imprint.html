@@ -4,12 +4,12 @@
 <article class="max-w-2xl mx-auto pt-12 md:pt-16">
 
   <div class="reveal reveal-1 text-[0.72rem] tracking-[0.25em] uppercase text-rust-600 font-mono mb-5">
-    — Impressum
+    {{ _('imprint.kicker') }}
   </div>
   <h1 class="reveal reveal-1 font-serif text-4xl md:text-5xl text-ink-900 tracking-tight-display leading-[1.05] mb-3">
-    Rechtliches
+    {{ _('imprint.title') }}
   </h1>
-  <p class="reveal reveal-1 text-sm text-ink-400 italic font-serif mb-12">Angaben gemäß § 5 TMG</p>
+  <p class="reveal reveal-1 text-sm text-ink-400 italic font-serif mb-12">{{ _('imprint.subtitle') }}</p>
 
   <div class="reveal reveal-2 space-y-10 text-ink-700 leading-[1.75] text-[1.02rem]">
 
@@ -18,7 +18,7 @@
         <div class="font-serif text-2xl text-ink-900 serif-tight mb-2">{{ imprint.name }}</div>
       {% else %}
         <div class="p-4 rounded-xl bg-rust-50 border-l-2 border-rust-500 text-rust-800 text-sm">
-          <span class="font-serif italic">⚠ </span><code>IMPRINT_NAME</code> nicht gesetzt.
+          <span class="font-serif italic">⚠ </span><code>IMPRINT_NAME</code> {{ _('imprint.name_missing') }}
         </div>
       {% endif %}
 
@@ -28,25 +28,23 @@
 
       {% if imprint.email %}
         <div class="mt-5 text-ink-600">
-          Kontakt&nbsp;
+          {{ _('imprint.contact') }}&nbsp;
           <a href="mailto:{{ imprint.email }}" class="link-underline text-rust-600 font-mono text-sm">{{ imprint.email }}</a>
         </div>
       {% endif %}
     </section>
 
     <section>
-      <h2 class="font-serif text-xl text-ink-900 serif-tight mb-3">Verantwortlich für den Inhalt</h2>
+      <h2 class="font-serif text-xl text-ink-900 serif-tight mb-3">{{ _('imprint.responsible_title') }}</h2>
       <p class="text-ink-600">
-        {{ imprint.name or "—" }} <span class="italic font-serif text-ink-400">· nach § 55 Abs. 2 RStV</span>
+        {{ imprint.name or "—" }} <span class="italic font-serif text-ink-400">· {{ _('imprint.responsible_body') }}</span>
       </p>
     </section>
 
     <section>
-      <h2 class="font-serif text-xl text-ink-900 serif-tight mb-3">Haftungsausschluss</h2>
+      <h2 class="font-serif text-xl text-ink-900 serif-tight mb-3">{{ _('imprint.disclaimer_title') }}</h2>
       <p class="text-ink-600">
-        Die Inhalte dieses Dienstes wurden mit größtmöglicher Sorgfalt erstellt. Für Richtigkeit,
-        Vollständigkeit und Aktualität kann jedoch keine Gewähr übernommen werden. Für die über
-        Notion synchronisierten Daten trägt der jeweilige Nutzer die alleinige Verantwortung.
+        {{ _('imprint.disclaimer_body') }}
       </p>
     </section>
 

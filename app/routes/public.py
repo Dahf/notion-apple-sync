@@ -9,6 +9,7 @@ from ..cache import TTLCache
 from ..crypto import decrypt
 from ..db import get_session
 from ..flash import flash
+from ..i18n import SUPPORTED, get_locale, translate
 from ..ics import build_ics
 from ..mailer import send_email
 from ..models import Calendar
@@ -62,6 +63,14 @@ def login_form(request: Request):
     return render(request, "login.html")
 
 
+@router.post("/lang/{code}")
+def set_language(code: str, request: Request):
+    if code in SUPPORTED and hasattr(request, "session"):
+        request.session["lang"] = code
+    referer = request.headers.get("referer") or "/"
+    return RedirectResponse(referer, status_code=303)
+
+
 @router.post("/auth/request")
 @limiter.limit("10/10 minutes")
 def auth_request(
@@ -70,20 +79,20 @@ def auth_request(
     db: Session = Depends(get_session),
 ):
     email = email.strip().lower()
+    locale = get_locale(request)
     if "@" in email and "." in email.split("@")[-1]:
         raw = create_magic_link(db, email)
         link = f"{settings.base_url}/auth/verify?token={raw}"
         html = templates.get_template("email/magic_link.html").render(
-            link=link, base_url=settings.base_url
+            link=link,
+            base_url=settings.base_url,
+            _=lambda k, **p: translate(k, locale, **p),
+            locale=locale,
         )
-        text = (
-            f"Dein Login-Link für Notion → Calendar:\n\n"
-            f"{link}\n\n"
-            f"Der Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\n"
-            f"Wenn du das nicht warst, ignoriere diese Mail."
-        )
+        text = translate("email.text", locale, link=link)
+        subject = translate("email.subject", locale)
         try:
-            send_email(email, "Dein Login-Link", html, text=text)
+            send_email(email, subject, html, text=text)
         except Exception:
             pass  # don't leak errors to UI
 
@@ -100,7 +109,10 @@ def auth_request(
 def auth_verify(token: str, request: Request, db: Session = Depends(get_session)):
     user = consume_magic_link(db, token)
     if user is None:
-        return render(request, "login.html", error="Link ungültig oder abgelaufen.")
+        locale = get_locale(request)
+        return render(
+            request, "login.html", error=translate("login.error_invalid", locale)
+        )
     login_session(request, user)
     _notify_admin(
         request,
@@ -108,14 +120,14 @@ def auth_verify(token: str, request: Request, db: Session = Depends(get_session)
         title="✅ Erfolgreicher Login",
         email=user.email,
     )
-    flash(request, f"Willkommen, {user.email}.", kind="success")
+    flash(request, "flash.welcome", kind="success", email=user.email)
     return RedirectResponse("/dashboard", status_code=303)
 
 
 @router.post("/auth/logout")
 def auth_logout(request: Request):
     logout_session(request)
-    flash(request, "Ausgeloggt. Bis bald.", kind="info")
+    flash(request, "flash.logged_out", kind="info")
     return RedirectResponse("/", status_code=303)
 
 

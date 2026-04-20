@@ -111,7 +111,7 @@ def create_calendar(
     )
     db.add(cal)
     db.commit()
-    flash(request, f"„{cal.name}“ angelegt. ICS-URL ist sofort aktiv.", kind="success")
+    flash(request, "flash.cal_created", kind="success", name=cal.name)
     return RedirectResponse("/dashboard", status_code=303)
 
 
@@ -160,7 +160,7 @@ def update_calendar(
     cal.date_property = date_property
     cal.description_property = (description_property or None) or None
     db.commit()
-    flash(request, f"„{cal.name}“ aktualisiert.", kind="success")
+    flash(request, "flash.cal_updated", kind="success", name=cal.name)
     return RedirectResponse("/dashboard", status_code=303)
 
 
@@ -183,5 +183,5 @@ def delete_calendar(
     cal_name = cal.name
     db.delete(cal)
     db.commit()
-    flash(request, f"„{cal_name}“ gelöscht.", kind="info")
+    flash(request, "flash.cal_deleted", kind="info", name=cal_name)
     return RedirectResponse("/dashboard", status_code=303)

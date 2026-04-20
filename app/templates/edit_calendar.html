@@ -6,34 +6,37 @@
   <div class="reveal reveal-1 mb-8">
     <a href="/dashboard" class="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-rust-600 transition-colors link-underline">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 13L5 8l5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Zurück zum Dashboard
+      {{ _('edit_cal.back') }}
     </a>
   </div>
 
   <div class="reveal reveal-2 mb-10">
     <div class="text-[0.72rem] tracking-[0.25em] uppercase text-rust-600 font-mono mb-4">
-      — Kalender bearbeiten
+      {{ _('edit_cal.kicker') }}
     </div>
     <h1 class="font-serif text-4xl md:text-5xl text-ink-900 tracking-tight-display leading-[1.05]">
       {{ calendar.name }}
     </h1>
     <p class="mt-3 text-sm text-ink-400 font-mono">
-      Workspace · {{ calendar.connection.workspace_name }}
+      {{ _('edit_cal.workspace') }} · {{ calendar.connection.workspace_name }}
     </p>
   </div>
 
   <div class="reveal reveal-3 surface p-6 md:p-8 mb-6">
     <div class="text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
-      ICS-URL
+      {{ _('edit_cal.ics_label') }}
     </div>
     <div class="flex items-center gap-3">
       <code class="flex-1 min-w-0 truncate font-mono text-xs text-ink-700 bg-cream-50 rounded-lg px-3 py-2 select-all">
         {{ base_url }}/cal/{{ calendar.subscription_token }}.ics
       </code>
       <button type="button"
-              onclick="navigator.clipboard.writeText('{{ base_url }}/cal/{{ calendar.subscription_token }}.ics'); this.innerText='kopiert ✓'; setTimeout(()=>this.innerText='kopieren', 1600);"
+              data-copy-url="{{ base_url }}/cal/{{ calendar.subscription_token }}.ics"
+              data-label-copy="{{ _('dashboard.copy') }}"
+              data-label-copied="{{ _('dashboard.copied') }}"
+              onclick="navigator.clipboard.writeText(this.dataset.copyUrl); this.innerText=this.dataset.labelCopied; setTimeout(()=>this.innerText=this.dataset.labelCopy, 1600);"
               class="shrink-0 text-xs px-3 py-2 rounded-full border border-ink-900/10 text-ink-700 hover:border-rust-500 hover:text-rust-600 transition-all font-medium">
-        kopieren
+        {{ _('dashboard.copy') }}
       </button>
     </div>
   </div>
@@ -45,33 +48,33 @@
 
       <div>
         <label for="name" class="block text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
-          Kalender-Name
+          {{ _('edit_cal.name_label') }}
         </label>
         <input id="name" type="text" name="name" value="{{ calendar.name }}" required>
-        <p class="mt-1.5 text-xs text-ink-400 italic font-serif">So erscheint er in Apple Calendar.</p>
+        <p class="mt-1.5 text-xs text-ink-400 italic font-serif">{{ _('edit_cal.name_hint') }}</p>
       </div>
 
       <div class="grid md:grid-cols-2 gap-5">
         <div>
           <label for="date-prop" class="block text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
-            Datums-Property
+            {{ _('edit_cal.date_prop') }}
           </label>
           <select id="date-prop" name="date_property" required>
             {% for p in info.date_properties %}
               <option value="{{ p }}" {% if p == calendar.date_property %}selected{% endif %}>{{ p }}</option>
             {% endfor %}
             {% if calendar.date_property not in info.date_properties %}
-              <option value="{{ calendar.date_property }}" selected>{{ calendar.date_property }} (nicht mehr vorhanden)</option>
+              <option value="{{ calendar.date_property }}" selected>{{ calendar.date_property }} {{ _('edit_cal.missing_suffix') }}</option>
             {% endif %}
           </select>
         </div>
 
         <div>
           <label for="desc-prop" class="block text-[0.72rem] tracking-[0.15em] uppercase text-ink-500 font-mono mb-2">
-            Beschreibung <span class="text-ink-300">(optional)</span>
+            {{ _('edit_cal.desc_prop') }} <span class="text-ink-300">{{ _('edit_cal.optional') }}</span>
           </label>
           <select id="desc-prop" name="description_property">
-            <option value="" {% if not calendar.description_property %}selected{% endif %}>— keine —</option>
+            <option value="" {% if not calendar.description_property %}selected{% endif %}>{{ _('edit_cal.no_desc') }}</option>
             {% for p in info.text_properties %}
               <option value="{{ p }}" {% if p == calendar.description_property %}selected{% endif %}>{{ p }}</option>
             {% endfor %}
@@ -81,28 +84,28 @@
 
       <div class="flex items-center justify-between pt-2 hairline" style="border-top:1px solid rgba(26,22,19,0.06); padding-top:1.25rem;">
         <button type="submit" class="btn-primary">
-          Änderungen speichern
+          {{ _('edit_cal.save') }}
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <a href="/dashboard" class="text-sm text-ink-500 italic font-serif link-underline hover:text-ink-900">
-          Abbrechen
+          {{ _('edit_cal.cancel') }}
         </a>
       </div>
     </form>
   {% else %}
     <div class="surface p-6 rounded-xl bg-rust-50 border-l-2 border-rust-500 text-sm text-rust-800">
-      <div class="font-serif italic mb-1">Notion-Datenbank nicht erreichbar.</div>
-      Möglicherweise wurde die Freigabe entzogen. Prüfe die Verbindung im Dashboard.
+      <div class="font-serif italic mb-1">{{ _('edit_cal.unreachable_title') }}</div>
+      {{ _('edit_cal.unreachable_body') }}
     </div>
   {% endif %}
 
   <form method="post" action="/dashboard/calendars/{{ calendar.id }}/delete" class="mt-10"
-        data-confirm="„{{ calendar.name }}“ wird entfernt und die ICS-URL wird sofort ungültig. Abonnenten sehen den Kalender nicht mehr."
-        data-confirm-title="Kalender löschen"
-        data-confirm-label="Ja, löschen">
+        data-confirm="{{ _('edit_cal.delete_confirm', name=calendar.name) }}"
+        data-confirm-title="{{ _('edit_cal.delete_title') }}"
+        data-confirm-label="{{ _('edit_cal.delete_label') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <button class="text-sm text-ink-400 hover:text-rust-600 italic font-serif link-underline">
-      Kalender löschen
+      {{ _('edit_cal.delete') }}
     </button>
   </form>
 

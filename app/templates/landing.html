@@ -4,57 +4,55 @@
 <section class="pt-16 md:pt-24 pb-20">
   <div class="max-w-3xl">
     <div class="reveal reveal-1 text-[0.78rem] tracking-[0.2em] uppercase text-rust-600 mb-6 font-mono">
-      Ein kleines, sorgfältiges Werkzeug
+      {{ _('landing.kicker') }}
     </div>
 
     <h1 class="reveal reveal-2 font-serif text-5xl md:text-7xl text-ink-900 leading-[0.95] tracking-tight-display mb-8">
-      Dein Notion-Kalender,
-      <span class="italic text-rust-600 serif-soft">wo immer</span>
-      du ihn brauchst.
+      {{ _('landing.title_1') }}
+      <span class="italic text-rust-600 serif-soft">{{ _('landing.title_em') }}</span>
+      {{ _('landing.title_2') }}
     </h1>
 
     <p class="reveal reveal-3 text-xl md:text-[1.35rem] leading-relaxed text-ink-600 mb-10 max-w-2xl font-light">
-      Verbinde eine Notion-Datenbank, wähle Deine Datums-Spalte — und bekomme eine ICS-Abonnement-URL,
-      die Apple Calendar, Google Calendar und jeder andere Kalender-Client versteht.
+      {{ _('landing.lead') }}
     </p>
 
     <div class="reveal reveal-4 flex items-center gap-5">
       <a href="/login" class="btn-primary">
-        Loslegen
+        {{ _('landing.cta_start') }}
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
-      <span class="text-sm text-ink-400 italic font-serif">Kostenlos · kein Passwort</span>
+      <span class="text-sm text-ink-400 italic font-serif">{{ _('landing.cta_free') }}</span>
     </div>
   </div>
 </section>
 
 <section class="pt-8 pb-4">
   <div class="text-[0.72rem] tracking-[0.25em] uppercase text-ink-400 font-mono mb-10">
-    — Wie es funktioniert
+    {{ _('landing.how_kicker') }}
   </div>
 
   <ol class="grid md:grid-cols-3 gap-px bg-ink-900/[0.06] rounded-3xl overflow-hidden shadow-paper">
     <li class="bg-white p-8 md:p-10 relative group">
       <div class="font-serif italic text-5xl text-rust-300 serif-soft mb-5">i.</div>
-      <h3 class="font-serif text-2xl text-ink-900 mb-3 serif-tight">Einloggen</h3>
+      <h3 class="font-serif text-2xl text-ink-900 mb-3 serif-tight">{{ _('landing.step1_title') }}</h3>
       <p class="text-ink-500 leading-relaxed">
-        E-Mail eintragen. Wir schicken Dir einen Link — <span class="italic font-serif">ein Klick genügt</span>.
-        Kein Passwort, nie wieder vergessen.
+        {{ _('landing.step1_body_1') }} <span class="italic font-serif">{{ _('landing.step1_body_em') }}</span>{{ _('landing.step1_body_2') }}
       </p>
     </li>
     <li class="bg-white p-8 md:p-10 relative group">
       <div class="font-serif italic text-5xl text-rust-300 serif-soft mb-5">ii.</div>
-      <h3 class="font-serif text-2xl text-ink-900 mb-3 serif-tight">Notion verbinden</h3>
+      <h3 class="font-serif text-2xl text-ink-900 mb-3 serif-tight">{{ _('landing.step2_title') }}</h3>
       <p class="text-ink-500 leading-relaxed">
-        Offizielle OAuth-Verbindung. Du bestimmst, welche Datenbanken wir überhaupt zu sehen bekommen.
+        {{ _('landing.step2_body') }}
       </p>
     </li>
     <li class="bg-white p-8 md:p-10 relative group">
       <div class="font-serif italic text-5xl text-rust-300 serif-soft mb-5">iii.</div>
-      <h3 class="font-serif text-2xl text-ink-900 mb-3 serif-tight">Abonnieren</h3>
+      <h3 class="font-serif text-2xl text-ink-900 mb-3 serif-tight">{{ _('landing.step3_title') }}</h3>
       <p class="text-ink-500 leading-relaxed">
-        URL kopieren, in Apple Calendar einfügen. <span class="italic font-serif">Fertig.</span>
-        Änderungen in Notion erscheinen automatisch.
+        {{ _('landing.step3_body_1') }} <span class="italic font-serif">{{ _('landing.step3_body_em') }}</span>
+        {{ _('landing.step3_body_2') }}
       </p>
     </li>
   </ol>
@@ -62,8 +60,7 @@
 
 <section class="mt-24 max-w-2xl">
   <div class="font-serif text-2xl text-ink-700 italic leading-relaxed serif-soft">
-    „Kalender verdienen Sorgfalt.&nbsp; Dies ist keine Plattform — es ist ein Stück Handwerk,
-    das eine konkrete Aufgabe elegant löst."
+    {{ _('landing.quote') }}
   </div>
 </section>
 
@@ -72,11 +69,10 @@
 
     <div>
       <h2 class="font-serif text-4xl md:text-5xl text-ink-900 leading-[1.05] tracking-tight-display mb-6">
-        Notion-Daten, <span class="italic text-rust-600">live</span> im Kalender.
+        {{ _('landing.live_title_1') }} <span class="italic text-rust-600">{{ _('landing.live_title_em') }}</span> {{ _('landing.live_title_2') }}
       </h2>
       <p class="text-ink-500 leading-relaxed text-[1.05rem]">
-        Jede Änderung in Deiner Notion-Datenbank erscheint automatisch in Deinem Kalender.
-        Apple&nbsp;Calendar, Google&nbsp;Calendar — alles via ICS.
+        {{ _('landing.live_body') }}
       </p>
     </div>
 
@@ -87,10 +83,11 @@
 
       <div class="relative surface-raised p-6 md:p-7">
         <div class="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-ink-500 mb-4">
-          April 2026
+          {{ _('landing.preview_month') }}
         </div>
         <div class="grid grid-cols-7 gap-1.5 text-center">
-          {% for wd in ['Mo','Di','Mi','Do','Fr','Sa','So'] %}
+          {% set weekdays = [_('weekday.mon'), _('weekday.tue'), _('weekday.wed'), _('weekday.thu'), _('weekday.fri'), _('weekday.sat'), _('weekday.sun')] %}
+          {% for wd in weekdays %}
             <div class="font-mono text-[0.62rem] tracking-[0.2em] uppercase text-ink-400 pb-2">{{ wd }}</div>
           {% endfor %}
 
